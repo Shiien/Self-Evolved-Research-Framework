@@ -18,7 +18,8 @@
 #   -h, --help            Show this help and exit
 #   -n, --dry-run         Print actions without modifying the filesystem
 #   -f, --force           Overwrite existing skills at the target
-#   -l, --link            Symlink instead of copying (ideal for development)
+#   -l, --link            Symlink instead of copying (Claude runtime only;
+#                         Codex runtime requires a materialized copy)
 #   -s, --source DIR      Source directory to scan (default: ./skills)
 #   -t, --target DIR      Target directory            (default depends on runtime)
 #       --user            Shortcut for --target ~/.claude/skills (global install)
@@ -192,6 +193,10 @@ if [ "$RUNTIME" = "codex" ]; then
   fi
   if [ "$USER_TARGET" -eq 1 ]; then
     log_error "--user is not supported with --runtime codex in this version; use --target explicitly."
+    exit 1
+  fi
+  if [ "$MODE" = "link" ]; then
+    log_error "--link is not supported with --runtime codex; Codex runtime requires materialized copies with runtime exclusions."
     exit 1
   fi
 fi

@@ -142,6 +142,20 @@ test_codex_runtime_rejects_codex_track() {
   }
 }
 
+test_codex_runtime_rejects_link() {
+  local target="$TMP_DIR/invalid-link"
+  local out="$TMP_DIR/ser-invalid-link.out"
+  local err="$TMP_DIR/ser-invalid-link.err"
+  if run_install --runtime codex --target "$target" --link --dry-run --only fey-r >"$out" 2>"$err"; then
+    fail "expected --runtime codex --link to fail"
+  fi
+  grep -Eq -- '--link.*--runtime codex|--runtime codex.*--link|Codex runtime.*link' "$err" || {
+    cat "$err" >&2
+    fail "missing invalid codex link error"
+  }
+  assert_not_exists "$target"
+}
+
 test_codex_runtime_audits_selected_skill_source() {
   local source="$TMP_DIR/audit-source"
   local claude_target="$TMP_DIR/audit-claude"
@@ -187,7 +201,7 @@ test_codex_runtime_default_target() {
     bash "$INSTALL" --no-color --runtime codex --dry-run --force --only code-review >"$out"
   )
   assert_grep "Target : ${REPO_ROOT}/\\.agents/skills" "$out"
-  assert_grep 'would install .*code-review' "$out"
+  assert_grep 'would (install|update) .*code-review' "$out"
 }
 
 test_default_claude_track_a
@@ -197,6 +211,7 @@ test_claude_runtime_does_not_leak_openai_variant
 test_codex_runtime_single_model
 test_codex_runtime_installed_surface_is_clean
 test_codex_runtime_rejects_codex_track
+test_codex_runtime_rejects_link
 test_codex_runtime_audits_selected_skill_source
 test_codex_runtime_skips_existing_target_before_audit
 test_codex_runtime_default_target

@@ -20,8 +20,13 @@
 #   -f, --force           Overwrite existing skills at the target
 #   -l, --link            Symlink instead of copying (ideal for development)
 #   -s, --source DIR      Source directory to scan (default: ./skills)
-#   -t, --target DIR      Target directory            (default: ./.claude/skills)
+#   -t, --target DIR      Target directory            (default depends on runtime)
 #       --user            Shortcut for --target ~/.claude/skills (global install)
+#       --runtime R       Select runtime: 'claude' (default) or 'codex'.
+#                         'claude' installs to ./.claude/skills and supports
+#                         --codex-track claude|codex.
+#                         'codex' installs to ./.agents/skills, selects
+#                         SKILL.openai.md > SKILL.md, and rejects --codex-track.
 #       --only PATTERNS   Install only skills matching PATTERNS (comma-separated,
 #                         glob supported; e.g. 'paper-*,code-*').
 #                         Repeatable; union of all patterns is kept.
@@ -65,7 +70,10 @@ set -euo pipefail
 # --- Defaults ------------------------------------------------------------------
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SOURCE_DIR="${REPO_ROOT}/skills"
-TARGET_DIR="${REPO_ROOT}/.claude/skills"
+RUNTIME="claude"      # claude | codex
+TARGET_DIR=""
+TARGET_SET=0
+USER_TARGET=0
 MODE="copy"          # copy | link
 DRY_RUN=0
 FORCE=0
@@ -73,7 +81,8 @@ LIST_ONLY=0
 USE_COLOR=1
 ONLY_PATTERNS=()
 EXCLUDE_PATTERNS=()
-CODEX_TRACK="claude"    # claude | codex — selects SKILL.{track}.md variant for any skill that ships variants
+CODEX_TRACK="claude"
+CODEX_TRACK_SET=0
 
 # --- Helpers -------------------------------------------------------------------
 if [ -t 1 ]; then :; else USE_COLOR=0; fi
@@ -117,8 +126,14 @@ while [ $# -gt 0 ]; do
     -s|--source)    [ $# -ge 2 ] || { log_error "--source requires an argument"; exit 1; }
                     SOURCE_DIR="$2"; shift 2 ;;
     -t|--target)    [ $# -ge 2 ] || { log_error "--target requires an argument"; exit 1; }
-                    TARGET_DIR="$2"; shift 2 ;;
-    --user)         TARGET_DIR="${HOME}/.claude/skills"; shift ;;
+                    TARGET_DIR="$2"; TARGET_SET=1; shift 2 ;;
+    --user)         TARGET_DIR="${HOME}/.claude/skills"; TARGET_SET=1; USER_TARGET=1; shift ;;
+    --runtime)      [ $# -ge 2 ] || { log_error "--runtime requires an argument"; exit 1; }
+                    case "$2" in
+                      claude|codex) RUNTIME="$2" ;;
+                      *) log_error "--runtime must be 'claude' or 'codex' (got: $2)"; exit 1 ;;
+                    esac
+                    shift 2 ;;
     --only)         [ $# -ge 2 ] || { log_error "--only requires an argument"; exit 1; }
                     IFS=',' read -r -a _tmp <<<"$2"
                     ONLY_PATTERNS+=("${_tmp[@]}")
@@ -128,6 +143,7 @@ while [ $# -gt 0 ]; do
                     EXCLUDE_PATTERNS+=("${_tmp[@]}")
                     shift 2 ;;
     --codex-track)  [ $# -ge 2 ] || { log_error "--codex-track requires an argument"; exit 1; }
+                    CODEX_TRACK_SET=1
                     case "$2" in
                       claude|codex) CODEX_TRACK="$2" ;;
                       *) log_error "--codex-track must be 'claude' or 'codex' (got: $2)"; exit 1 ;;
@@ -140,6 +156,24 @@ while [ $# -gt 0 ]; do
     *)              log_error "Unexpected argument: $1"; usage 1 ;;
   esac
 done
+
+if [ "$RUNTIME" = "codex" ]; then
+  if [ "$CODEX_TRACK_SET" -eq 1 ]; then
+    log_error "--codex-track is only valid with --runtime claude; Codex runtime is single-model."
+    exit 1
+  fi
+  if [ "$USER_TARGET" -eq 1 ]; then
+    log_error "--user is not supported with --runtime codex in this version; use --target explicitly."
+    exit 1
+  fi
+fi
+
+if [ "$TARGET_SET" -eq 0 ]; then
+  case "$RUNTIME" in
+    claude) TARGET_DIR="${REPO_ROOT}/.claude/skills" ;;
+    codex)  TARGET_DIR="${REPO_ROOT}/.agents/skills" ;;
+  esac
+fi
 
 # Resolve to absolute paths (portable: no realpath required)
 abspath() {
@@ -245,11 +279,11 @@ fi
 # We deliberately use `-print0` + null-delim read to be safe with unusual names.
 discover_skills() {
   local roots=()
-  # Match SKILL.md, SKILL.claude.md, SKILL.codex.md — then dedupe by directory.
+  # Match SKILL.md, SKILL.claude.md, SKILL.codex.md, SKILL.openai.md — then dedupe by directory.
   while IFS= read -r -d '' f; do
     roots+=("$f")
   done < <(find "$SOURCE_DIR" -type f \
-            \( -name 'SKILL.md' -o -name 'SKILL.claude.md' -o -name 'SKILL.codex.md' \) \
+            \( -name 'SKILL.md' -o -name 'SKILL.claude.md' -o -name 'SKILL.codex.md' -o -name 'SKILL.openai.md' \) \
             -print0 | sort -z)
 
   # Dedupe by directory — a single dir may contain both SKILL.claude.md and
@@ -349,7 +383,12 @@ log_info "Source : $SOURCE_DIR"
 log_info "Target : $TARGET_DIR"
 log_info "Mode   : $MODE$( [ "$DRY_RUN" -eq 1 ] && echo ' (dry-run)' )"
 log_info "Force  : $( [ "$FORCE" -eq 1 ] && echo yes || echo no )"
-log_info "Codex  : track=$CODEX_TRACK"
+log_info "Runtime: $RUNTIME"
+if [ "$RUNTIME" = "claude" ]; then
+  log_info "Track  : $CODEX_TRACK"
+else
+  log_info "Track  : single-model"
+fi
 echo
 
 if [ "$DRY_RUN" -eq 0 ]; then
@@ -365,26 +404,41 @@ install_one() {
   local name="$1" src="$2"
   local dst="${TARGET_DIR}/${name}"
   local action=""
-  # Track-variant detection: does the source dir have SKILL.{track}.md variants
-  # but no plain SKILL.md? (a plain SKILL.md means the skill has no track split
-  # and should be installed as-is.)
-  local has_plain=0 has_variant=0 variant_file=""
+  local has_plain=0 has_variant=0 variant_file="" selected_file="" materialize_variant=0
   [ -f "$src/SKILL.md" ] && has_plain=1
-  if [ -f "$src/SKILL.${CODEX_TRACK}.md" ]; then
-    has_variant=1
-    variant_file="SKILL.${CODEX_TRACK}.md"
-  fi
-  # If variant files exist but the selected track's variant is missing, warn
-  # and fall back to whichever variant is present (preferring claude).
-  if [ "$has_plain" -eq 0 ] && [ "$has_variant" -eq 0 ]; then
-    if [ -f "$src/SKILL.claude.md" ]; then
-      variant_file="SKILL.claude.md"
+
+  if [ "$RUNTIME" = "codex" ]; then
+    if [ -f "$src/SKILL.openai.md" ]; then
+      selected_file="SKILL.openai.md"
       has_variant=1
-      log_warn "$name: no SKILL.${CODEX_TRACK}.md; falling back to SKILL.claude.md"
-    elif [ -f "$src/SKILL.codex.md" ]; then
-      variant_file="SKILL.codex.md"
+      materialize_variant=1
+    elif [ "$has_plain" -eq 1 ]; then
+      selected_file="SKILL.md"
+    else
+      log_error "$name: Codex runtime requires SKILL.openai.md or runtime-neutral SKILL.md"
+      return 1
+    fi
+  else
+    if [ -f "$src/SKILL.${CODEX_TRACK}.md" ]; then
+      variant_file="SKILL.${CODEX_TRACK}.md"
       has_variant=1
-      log_warn "$name: no SKILL.${CODEX_TRACK}.md; falling back to SKILL.codex.md"
+    fi
+    if [ "$has_plain" -eq 0 ] && [ "$has_variant" -eq 0 ]; then
+      if [ -f "$src/SKILL.claude.md" ]; then
+        variant_file="SKILL.claude.md"
+        has_variant=1
+        log_warn "$name: no SKILL.${CODEX_TRACK}.md; falling back to SKILL.claude.md"
+      elif [ -f "$src/SKILL.codex.md" ]; then
+        variant_file="SKILL.codex.md"
+        has_variant=1
+        log_warn "$name: no SKILL.${CODEX_TRACK}.md; falling back to SKILL.codex.md"
+      fi
+    fi
+    if [ "$has_variant" -eq 1 ] && [ "$has_plain" -eq 0 ]; then
+      selected_file="$variant_file"
+      materialize_variant=1
+    else
+      selected_file="SKILL.md"
     fi
   fi
 
@@ -400,8 +454,8 @@ install_one() {
   fi
 
   if [ "$DRY_RUN" -eq 1 ]; then
-    if [ "$has_variant" -eq 1 ] && [ "$has_plain" -eq 0 ]; then
-      log_ok "would $action (copy, track=$CODEX_TRACK): $name ← $src ($variant_file → SKILL.md)"
+    if [ "$materialize_variant" -eq 1 ]; then
+      log_ok "would $action (copy, track=$CODEX_TRACK): $name ← $src ($selected_file → SKILL.md)"
     elif [ "$MODE" = "link" ]; then
       log_ok "would $action (symlink): $name → $src"
     else
@@ -416,19 +470,19 @@ install_one() {
     rm -rf "$dst"
   fi
 
-  if [ "$has_variant" -eq 1 ] && [ "$has_plain" -eq 0 ]; then
-    # Track-variant skill: always copy (symlinking would leak both variants).
+  if [ "$materialize_variant" -eq 1 ]; then
+    # Variant skill: always copy (symlinking would leak variants).
     # Materialize chosen variant as SKILL.md; drop the unused variant(s).
     mkdir -p "$dst"
     if command -v rsync >/dev/null 2>&1; then
       rsync -a --delete \
-        --exclude='SKILL.claude.md' --exclude='SKILL.codex.md' \
+        --exclude='SKILL.claude.md' --exclude='SKILL.codex.md' --exclude='SKILL.openai.md' \
         "$src/" "$dst/"
     else
       cp -R "$src/." "$dst/"
-      rm -f "$dst/SKILL.claude.md" "$dst/SKILL.codex.md"
+      rm -f "$dst/SKILL.claude.md" "$dst/SKILL.codex.md" "$dst/SKILL.openai.md"
     fi
-    cp "$src/$variant_file" "$dst/SKILL.md"
+    cp "$src/$selected_file" "$dst/SKILL.md"
     log_ok "$action (copy, track=$CODEX_TRACK): $name"
   elif [ "$MODE" = "link" ]; then
     # Use absolute symlink so the target is resilient to cwd changes.

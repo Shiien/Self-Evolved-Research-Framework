@@ -125,6 +125,19 @@ audit_codex_skill_file() {
   return 0
 }
 
+copy_runtime_aux_excludes() {
+  if [ "$RUNTIME" = "codex" ]; then
+    printf '%s\n' --exclude='/README.md' --exclude='/.gitignore' --exclude='/.git'
+  fi
+}
+
+remove_runtime_aux_files() {
+  local dst="$1"
+  if [ "$RUNTIME" = "codex" ]; then
+    rm -rf "$dst/README.md" "$dst/.gitignore" "$dst/.git"
+  fi
+}
+
 usage() {
   # Print the header block (between the two ──── separators) as help text.
   awk '/^# ─{10,}/{n++; next} n==1' "$0" | sed 's/^# \{0,1\}//'
@@ -512,10 +525,12 @@ install_one() {
     if command -v rsync >/dev/null 2>&1; then
       rsync -a --delete \
         --exclude='SKILL.claude.md' --exclude='SKILL.codex.md' --exclude='SKILL.openai.md' \
+        $(copy_runtime_aux_excludes) \
         "$src/" "$dst/"
     else
       cp -R "$src/." "$dst/"
       rm -f "$dst/SKILL.claude.md" "$dst/SKILL.codex.md" "$dst/SKILL.openai.md"
+      remove_runtime_aux_files "$dst"
     fi
     cp "$src/$selected_file" "$dst/SKILL.md"
     log_ok "$action (copy, $variant_context): $name"
@@ -526,9 +541,10 @@ install_one() {
   else
     # Prefer rsync if available for robust copy semantics; fall back to cp.
     if command -v rsync >/dev/null 2>&1; then
-      rsync -a --delete "$src/" "$dst/"
+      rsync -a --delete $(copy_runtime_aux_excludes) "$src/" "$dst/"
     else
       cp -R "$src" "$dst"
+      remove_runtime_aux_files "$dst"
     fi
     log_ok "$action (copy): $name"
   fi

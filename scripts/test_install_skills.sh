@@ -123,6 +123,9 @@ test_codex_runtime_installed_surface_is_clean() {
   local target="$TMP_DIR/codex-surface"
   run_install --runtime codex --target "$target" --force
   assert_dir "$target"
+  assert_not_exists "$target/fey-r/README.md"
+  assert_not_exists "$target/fey-r/.gitignore"
+  assert_not_exists "$target/fey-r/.git"
   assert_no_tree_grep 'Claude Code|\.claude|CLAUDE\.md|/codex:|mcp__codex__codex' "$target"
 }
 

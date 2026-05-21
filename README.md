@@ -135,6 +135,24 @@ Each SER skill lives in its own directory under `skills/` with a standard
 `SKILL.md` (YAML frontmatter + body), so Claude Code auto-discovers and
 auto-triggers them once installed.
 
+### Codex-native runtime
+
+SER also supports a Codex-native single-model runtime:
+
+```bash
+bash scripts/install-skills.sh --runtime codex
+codex
+```
+
+Codex-native install writes materialized skills to `.agents/skills/` and uses
+`AGENTS.md` as the root instruction file for Codex. This is different from
+Claude Code `--codex-track codex`: the Codex track keeps Claude Code as the
+runtime and adds Codex as an extra reviewer/executor for selected skills.
+
+Current Codex runtime constraints: installs are copy/materialized only;
+`--link`, `--user`, and `--codex-track` are not supported with
+`--runtime codex`.
+
 ## Skills (57 SER + 1 external)
 
 Each skill lives in `skills/{skill-name}/SKILL.md` with standard YAML frontmatter.

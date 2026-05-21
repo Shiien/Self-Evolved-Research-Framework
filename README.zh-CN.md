@@ -130,6 +130,23 @@ bash scripts/install-skills.sh --codex-track codex    # Codex 增强的跨模型
 每个 SER 技能都住在 `skills/` 下的独立目录里，带标准 `SKILL.md`
 （YAML frontmatter + 正文），安装完成后 Claude Code 会自动发现与自动触发。
 
+### Codex 原生运行时
+
+SER 也支持 Codex 原生的单模型运行时：
+
+```bash
+bash scripts/install-skills.sh --runtime codex
+codex
+```
+
+Codex 原生安装会把实体化的技能写入 `.agents/skills/`，并使用
+`AGENTS.md` 作为 Codex 的根指令文件。这不同于 Claude Code 的
+`--codex-track codex`：Codex 轨道仍以 Claude Code 为运行时，只是在部分技能中
+把 Codex 作为额外评审者或执行者接入。
+
+当前 Codex 运行时限制：只支持复制/实体化安装；`--link`、`--user` 和
+`--codex-track` 不能与 `--runtime codex` 一起使用。
+
 ## 技能总览（57 个 SER + 1 个外部）
 
 每个技能位于 `skills/{skill-name}/SKILL.md`，带标准 YAML frontmatter。

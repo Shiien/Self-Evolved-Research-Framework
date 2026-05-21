@@ -39,6 +39,13 @@ assert_no_grep() {
   fi
 }
 
+assert_no_tree_grep() {
+  local pattern="$1" root="$2"
+  if grep -RInE "$pattern" "$root"; then
+    fail "forbidden pattern found under $root: $pattern"
+  fi
+}
+
 run_install() {
   bash "$INSTALL" --no-color "$@"
 }
@@ -112,6 +119,13 @@ test_codex_runtime_single_model() {
   assert_no_grep 'Claude Code|\.claude|CLAUDE\.md|/codex:|mcp__codex__codex' "$target/code-implement/SKILL.md"
 }
 
+test_codex_runtime_installed_surface_is_clean() {
+  local target="$TMP_DIR/codex-surface"
+  run_install --runtime codex --target "$target" --force
+  assert_dir "$target"
+  assert_no_tree_grep 'Claude Code|\.claude|CLAUDE\.md|/codex:|mcp__codex__codex' "$target"
+}
+
 test_codex_runtime_rejects_codex_track() {
   local target="$TMP_DIR/invalid"
   local out="$TMP_DIR/ser-invalid.out"
@@ -178,6 +192,7 @@ test_claude_track_b_preserved
 test_claude_runtime_ignores_openai_only_skills
 test_claude_runtime_does_not_leak_openai_variant
 test_codex_runtime_single_model
+test_codex_runtime_installed_surface_is_clean
 test_codex_runtime_rejects_codex_track
 test_codex_runtime_audits_selected_skill_source
 test_codex_runtime_skips_existing_target_before_audit

@@ -85,6 +85,8 @@ CODEX_TRACK="claude"
 CODEX_TRACK_SET=0
 
 # --- Helpers -------------------------------------------------------------------
+CODEX_FORBIDDEN_MARKERS='Claude Code|\.claude|CLAUDE\.md|/codex:|mcp__codex__codex'
+
 if [ -t 1 ]; then :; else USE_COLOR=0; fi
 
 color() {
@@ -109,6 +111,19 @@ log_ok()      { echo "$(color green  '[+]') $*"; }
 log_skip()    { echo "$(color dim    '[=]') $*"; }
 log_warn()    { echo "$(color yellow '[!]') $*" >&2; }
 log_error()   { echo "$(color red    '[x]') $*" >&2; }
+
+audit_codex_skill_file() {
+  local name="$1" file="$2"
+  if [ "$RUNTIME" != "codex" ]; then
+    return 0
+  fi
+  if grep -Eq "$CODEX_FORBIDDEN_MARKERS" "$file"; then
+    log_error "$name: Codex runtime coupling found in $(basename "$file")"
+    grep -En "$CODEX_FORBIDDEN_MARKERS" "$file" >&2 || true
+    return 1
+  fi
+  return 0
+}
 
 usage() {
   # Print the header block (between the two ──── separators) as help text.
@@ -456,6 +471,10 @@ install_one() {
   fi
   if [ "$selected_file" = "SKILL.md" ] && [ "$has_any_variant" -eq 1 ]; then
     materialize_variant=1
+  fi
+
+  if ! audit_codex_skill_file "$name" "$src/$selected_file"; then
+    return 1
   fi
 
   if [ -e "$dst" ] || [ -L "$dst" ]; then

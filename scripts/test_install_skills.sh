@@ -125,6 +125,27 @@ test_codex_runtime_rejects_codex_track() {
   }
 }
 
+test_codex_runtime_audits_selected_skill_source() {
+  local source="$TMP_DIR/audit-source"
+  local claude_target="$TMP_DIR/audit-claude"
+  local codex_target="$TMP_DIR/audit-codex"
+  local out="$TMP_DIR/audit-codex.out"
+  local err="$TMP_DIR/audit-codex.err"
+
+  mkdir -p "$source/audit-bad"
+  printf '# Audit bad\n\nMentions Claude Code in the selected source.\n' >"$source/audit-bad/SKILL.md"
+
+  run_install --runtime claude --source "$source" --target "$claude_target" --force
+  assert_file "$claude_target/audit-bad/SKILL.md"
+
+  if run_install --runtime codex --source "$source" --target "$codex_target" --dry-run --force >"$out" 2>"$err"; then
+    fail "expected Codex runtime audit to reject forbidden markers"
+  fi
+  assert_grep 'audit-bad: Codex runtime coupling found in SKILL\.md' "$err"
+  assert_grep 'Claude Code' "$err"
+  assert_not_exists "$codex_target"
+}
+
 test_codex_runtime_default_target() {
   local out="$TMP_DIR/default-target.out"
   (
@@ -141,6 +162,7 @@ test_claude_runtime_ignores_openai_only_skills
 test_claude_runtime_does_not_leak_openai_variant
 test_codex_runtime_single_model
 test_codex_runtime_rejects_codex_track
+test_codex_runtime_audits_selected_skill_source
 test_codex_runtime_default_target
 
 echo "[PASS] install-skills runtime tests"

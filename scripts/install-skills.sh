@@ -44,8 +44,9 @@
 #                         evidence source via `mcp__codex__codex`).
 #                         For skills that ship track variants (code-implement, code-review,
 #                         writing-review, idea-verify), the matching SKILL.T.md is
-#                         materialized as SKILL.md. 'codex' strictly preflights codex
-#                         deps (/codex:setup, Superpowers, /codex:review, mcp__codex__codex).
+#                         materialized as SKILL.md. 'codex' strictly preflights
+#                         codex login status, /codex:review, and mcp__codex__codex.
+#                         Superpowers is recommended for Codex but is not preflighted.
 #       --list            List discovered skills (after --only/--exclude filters)
 #                         and exit without installing
 #       --no-color        Disable ANSI color output

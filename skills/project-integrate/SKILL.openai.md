@@ -18,7 +18,10 @@ description: Merge an unpacked SER distribution (ser-vX.Y/) into an existing res
 
 ### Phase 1: Inventory (read-only)
 
-1. **Scan SER pack**: Read `ser-vX.Y/MANIFEST.yaml` to identify all framework files
+1. **Scan SER pack**: Inventory the unpacked `ser-vX.Y/` tree directly:
+   - List top-level framework directories and files
+   - Count skill directories under `ser-vX.Y/skills/` that contain `SKILL.md` or `SKILL.openai.md`
+   - Confirm expected install inputs exist: `ser-vX.Y/scripts/install-skills.sh`, `ser-vX.Y/AGENTS.md`, `ser-vX.Y/config.yaml`, `ser-vX.Y/memory/`, and `ser-vX.Y/scripts/`
 2. **Scan existing project**: Identify the project's key assets:
    - Source code directories (Python, LaTeX, configs)
    - Paper/document files (.tex, .pdf, .md)

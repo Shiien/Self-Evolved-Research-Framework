@@ -55,8 +55,7 @@ mkdir -p .agents/skills
 bash ser-vX.Y/scripts/install-skills.sh \
   --runtime codex \
   --source ser-vX.Y/skills \
-  --target .agents/skills \
-  --force
+  --target .agents/skills
 cp -rn ser-vX.Y/memory .          # Memory system (templates)
 cp -rn ser-vX.Y/scripts .         # Utility scripts
 # Create empty SER directories (only if they don't exist):
@@ -67,7 +66,7 @@ for dir in logs/digest background methodology \
 done
 ```
 
-**Rule**: Never overwrite existing directories that contain user data. If `.agents/skills/` already has project-specific skills, merge SER skills additively and review same-name skill conflicts before replacing anything. If `resources/papers/` already has files, only add `.gitkeep` if missing.
+**Rule**: Never overwrite existing directories that contain user data. If `.agents/skills/` already has project-specific skills, merge SER skills additively and review same-name skill conflicts before replacing anything. If the installer reports skipped existing skills, inspect each conflict and rerun with `--force` only after explicit user approval. If `resources/papers/` already has files, only add `.gitkeep` if missing.
 
 #### 2.2: Merge AGENTS.md
 

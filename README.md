@@ -115,8 +115,21 @@ The `codex` track adds an extra Codex pass:
 `code-review` adds `/codex:review` as a second reviewer;
 `writing-review` adds a 3rd Codex peer reviewer;
 `idea-verify` adds a 4th evidence source via `mcp__codex__codex`.
-When selected, the installer strictly preflights Codex CLI + Superpowers +
+When selected, the installer strictly preflights Codex CLI login +
 `/codex:review` + `mcp__codex__codex` and aborts if any dep is missing.
+
+> **Before using `--codex-track codex`:**
+> - Install the **[Codex Claude Code plugin](https://github.com/openai/codex-plugin-cc)**
+>   in this workspace — it provides the `/codex:review`, `/codex:rescue`,
+>   `/codex:adversarial-review`, `/codex:status`, `/codex:result`,
+>   `/codex:cancel` slash commands plus the `mcp__codex__codex` MCP server that
+>   the Codex-track skills call.
+> - Sign in once with `codex login` (ChatGPT subscription or OpenAI API key).
+> - **Strongly recommended — install
+>   [Superpowers](https://github.com/obra/superpowers) inside Codex** (not
+>   Claude Code). Superpowers materially improves TDD / planning / review
+>   quality on the Codex side. It is not preflighted by this installer because
+>   it lives in Codex, but the Codex-track skills assume it when available.
 
 Each SER skill lives in its own directory under `skills/` with a standard
 `SKILL.md` (YAML frontmatter + body), so Claude Code auto-discovers and

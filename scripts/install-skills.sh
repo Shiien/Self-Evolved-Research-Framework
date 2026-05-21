@@ -159,50 +159,44 @@ if [ ! -d "$SOURCE_DIR" ]; then
 fi
 
 # --- Codex preflight (only runs when --codex-track codex) ---------------------
-# Track B (codex) strictly requires all four of:
-#   1. `/codex:setup` passes (Codex CLI configured and authenticated)
-#   2. Superpowers installed at ~/.agents/skills/superpowers/ (with SKILL.md +
-#      test-driven-development/ subdirectory — Codex's TDD discipline).
-#   3. `/codex:review` skill available (used by code-review Track B).
-#   4. `mcp__codex__codex` MCP server reachable (used by writing-review and
+# Track B (codex) strictly requires:
+#   1. `codex login status` reports an authenticated session (non-interactive
+#      check — `/codex:setup` cannot be used here because it opens a TUI and
+#      fails in non-TTY shells).
+#   2. `/codex:review` skill available (used by code-review Track B).
+#   3. `mcp__codex__codex` MCP server reachable (used by writing-review and
 #      idea-verify Track B for cross-model review).
+#
+# NOTE: Superpowers is NOT preflighted here. Superpowers is a Codex-side plugin
+# (installed inside Codex itself, not in Claude Code's skill tree), so there is
+# no reliable way to probe it from this Claude-side installer. It is strongly
+# recommended for best results on the Codex track — see README for the install
+# link.
+#
 # Any failure aborts installation with a clear remediation message.
 preflight_codex() {
   local problems=0
 
   log_info "Codex track preflight — checking dependencies…"
 
-  # 1. /codex:setup
+  # 1. Codex CLI + authenticated login.
+  # We use `codex login status` instead of `codex /codex:setup` because the
+  # latter launches an interactive TUI that fails in non-TTY shells with
+  # "stdin is not a terminal". `codex login status` is a non-interactive
+  # subcommand that prints the current login state and exits with 0 when
+  # authenticated.
   if ! command -v codex >/dev/null 2>&1; then
     log_error "codex CLI not found on PATH. Install Codex before using --codex-track codex."
     problems=$((problems + 1))
   else
-    # `codex /setup` should exit 0 and emit a "ready"-style marker. We run it
-    # with a short timeout and inspect both exit code and output.
-    local setup_out=""
-    if ! setup_out="$(codex /codex:setup 2>&1)" || ! printf '%s' "$setup_out" | grep -qiE 'ready|ok|configured'; then
-      log_error "/codex:setup did not report ready. Run \`codex /codex:setup\` manually and resolve errors."
+    local login_out=""
+    if ! login_out="$(codex login status 2>&1)" || ! printf '%s' "$login_out" | grep -qiE 'logged in|authenticated'; then
+      log_error "Codex CLI is not logged in. Run \`codex login\` (ChatGPT or API key) and retry."
       problems=$((problems + 1))
     fi
   fi
 
-  # 2. Superpowers presence
-  local sp="${HOME}/.agents/skills/superpowers"
-  if [ ! -d "$sp" ]; then
-    log_error "Superpowers skill not found at $sp. Install Superpowers before using --codex-track codex."
-    problems=$((problems + 1))
-  else
-    if [ ! -f "$sp/SKILL.md" ]; then
-      log_error "$sp exists but is missing SKILL.md — Superpowers install is incomplete."
-      problems=$((problems + 1))
-    fi
-    if [ ! -d "$sp/test-driven-development" ]; then
-      log_error "$sp is missing the test-driven-development/ subskill required by Codex track."
-      problems=$((problems + 1))
-    fi
-  fi
-
-  # 3. /codex:review availability
+  # 2. /codex:review availability
   if ! command -v codex >/dev/null 2>&1; then
     : # already reported above
   elif ! codex /codex:review --help >/dev/null 2>&1 && ! codex help 2>/dev/null | grep -q 'codex:review'; then
@@ -210,7 +204,7 @@ preflight_codex() {
     problems=$((problems + 1))
   fi
 
-  # 4. mcp__codex__codex MCP server — best-effort probe via `claude mcp`.
+  # 3. mcp__codex__codex MCP server — best-effort probe via `claude mcp`.
   # We skip hard failure if claude CLI isn't available (Codex CLI alone is
   # enough for /codex:* skills). When `claude mcp` is present, list servers
   # and look for the codex entry.

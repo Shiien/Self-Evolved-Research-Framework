@@ -9,7 +9,7 @@ description: Write a step-by-step implementation roadmap for a non-trivial codin
 
 **Shared context**: None.
 
-**Pair with**: `code-implement` (the skill that executes the roadmap, Track A or B).
+**Pair with**: `code-implement` (the Codex-native skill that executes the roadmap).
 
 ## Process
 

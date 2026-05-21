@@ -473,10 +473,6 @@ install_one() {
     materialize_variant=1
   fi
 
-  if ! audit_codex_skill_file "$name" "$src/$selected_file"; then
-    return 1
-  fi
-
   if [ -e "$dst" ] || [ -L "$dst" ]; then
     if [ "$FORCE" -eq 0 ]; then
       log_skip "$name (already installed — use --force to overwrite)"
@@ -486,6 +482,10 @@ install_one() {
     action="update"
   else
     action="install"
+  fi
+
+  if ! audit_codex_skill_file "$name" "$src/$selected_file"; then
+    return 1
   fi
 
   if [ "$DRY_RUN" -eq 1 ]; then

@@ -146,6 +146,23 @@ test_codex_runtime_audits_selected_skill_source() {
   assert_not_exists "$codex_target"
 }
 
+test_codex_runtime_skips_existing_target_before_audit() {
+  local source="$TMP_DIR/audit-skip-source"
+  local target="$TMP_DIR/audit-skip-target"
+  local out="$TMP_DIR/audit-skip.out"
+  local err="$TMP_DIR/audit-skip.err"
+
+  mkdir -p "$source/audit-skip" "$target/audit-skip"
+  printf '# Already installed\n\nClean Codex-native content.\n' >"$target/audit-skip/SKILL.md"
+  printf '# Audit skip\n\nMentions Claude Code in the selected source.\n' >"$source/audit-skip/SKILL.md"
+
+  run_install --runtime codex --source "$source" --target "$target" >"$out" 2>"$err"
+  assert_grep 'audit-skip \(already installed' "$out"
+  assert_no_grep 'Codex runtime coupling found' "$err"
+  assert_grep 'Clean Codex-native content' "$target/audit-skip/SKILL.md"
+  assert_no_grep 'Claude Code' "$target/audit-skip/SKILL.md"
+}
+
 test_codex_runtime_default_target() {
   local out="$TMP_DIR/default-target.out"
   (
@@ -163,6 +180,7 @@ test_claude_runtime_does_not_leak_openai_variant
 test_codex_runtime_single_model
 test_codex_runtime_rejects_codex_track
 test_codex_runtime_audits_selected_skill_source
+test_codex_runtime_skips_existing_target_before_audit
 test_codex_runtime_default_target
 
 echo "[PASS] install-skills runtime tests"

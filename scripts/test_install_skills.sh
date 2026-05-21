@@ -61,6 +61,46 @@ test_claude_track_b_preserved() {
   assert_grep 'SKILL\.codex\.md .* SKILL\.md' "$out"
 }
 
+test_claude_runtime_ignores_openai_only_skills() {
+  local source="$TMP_DIR/openai-source"
+  local claude_target="$TMP_DIR/openai-claude"
+  local codex_target="$TMP_DIR/openai-codex"
+  local list_out="$TMP_DIR/openai-claude-list.out"
+  local codex_dry_out="$TMP_DIR/openai-codex-dry.out"
+
+  mkdir -p "$source/openai-only"
+  printf '# OpenAI only\n' >"$source/openai-only/SKILL.openai.md"
+
+  run_install --runtime claude --source "$source" --list >"$list_out"
+  assert_no_grep 'openai-only' "$list_out"
+
+  run_install --runtime claude --source "$source" --target "$claude_target" --force
+  assert_not_exists "$claude_target/openai-only"
+
+  run_install --runtime codex --source "$source" --target "$codex_target" --dry-run --force >"$codex_dry_out"
+  assert_grep 'runtime=codex' "$codex_dry_out"
+  assert_grep 'SKILL\.openai\.md -> SKILL\.md' "$codex_dry_out"
+
+  run_install --runtime codex --source "$source" --target "$codex_target" --force
+  assert_file "$codex_target/openai-only/SKILL.md"
+  assert_grep 'OpenAI only' "$codex_target/openai-only/SKILL.md"
+  assert_not_exists "$codex_target/openai-only/SKILL.openai.md"
+}
+
+test_claude_runtime_does_not_leak_openai_variant() {
+  local source="$TMP_DIR/mixed-source"
+  local target="$TMP_DIR/mixed-claude"
+
+  mkdir -p "$source/mixed"
+  printf '# Claude neutral\n' >"$source/mixed/SKILL.md"
+  printf '# OpenAI variant\n' >"$source/mixed/SKILL.openai.md"
+
+  run_install --runtime claude --source "$source" --target "$target" --force
+  assert_file "$target/mixed/SKILL.md"
+  assert_grep 'Claude neutral' "$target/mixed/SKILL.md"
+  assert_not_exists "$target/mixed/SKILL.openai.md"
+}
+
 test_codex_runtime_single_model() {
   local target="$TMP_DIR/codex"
   run_install --runtime codex --target "$target" --force --only code-implement
@@ -97,6 +137,8 @@ test_codex_runtime_default_target() {
 
 test_default_claude_track_a
 test_claude_track_b_preserved
+test_claude_runtime_ignores_openai_only_skills
+test_claude_runtime_does_not_leak_openai_variant
 test_codex_runtime_single_model
 test_codex_runtime_rejects_codex_track
 test_codex_runtime_default_target

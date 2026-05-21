@@ -279,12 +279,20 @@ fi
 # We deliberately use `-print0` + null-delim read to be safe with unusual names.
 discover_skills() {
   local roots=()
-  # Match SKILL.md, SKILL.claude.md, SKILL.codex.md, SKILL.openai.md — then dedupe by directory.
+  # Match runtime-relevant skill manifests, then dedupe by directory.
   while IFS= read -r -d '' f; do
     roots+=("$f")
-  done < <(find "$SOURCE_DIR" -type f \
-            \( -name 'SKILL.md' -o -name 'SKILL.claude.md' -o -name 'SKILL.codex.md' -o -name 'SKILL.openai.md' \) \
-            -print0 | sort -z)
+  done < <(
+    if [ "$RUNTIME" = "codex" ]; then
+      find "$SOURCE_DIR" -type f \
+        \( -name 'SKILL.md' -o -name 'SKILL.claude.md' -o -name 'SKILL.codex.md' -o -name 'SKILL.openai.md' \) \
+        -print0 | sort -z
+    else
+      find "$SOURCE_DIR" -type f \
+        \( -name 'SKILL.md' -o -name 'SKILL.claude.md' -o -name 'SKILL.codex.md' \) \
+        -print0 | sort -z
+    fi
+  )
 
   # Dedupe by directory — a single dir may contain both SKILL.claude.md and
   # SKILL.codex.md, but it is still one skill.
@@ -404,10 +412,14 @@ install_one() {
   local name="$1" src="$2"
   local dst="${TARGET_DIR}/${name}"
   local action=""
-  local has_plain=0 has_variant=0 variant_file="" selected_file="" materialize_variant=0
+  local has_plain=0 has_variant=0 has_any_variant=0 variant_file="" selected_file="" materialize_variant=0 variant_context=""
   [ -f "$src/SKILL.md" ] && has_plain=1
+  if [ -f "$src/SKILL.claude.md" ] || [ -f "$src/SKILL.codex.md" ] || [ -f "$src/SKILL.openai.md" ]; then
+    has_any_variant=1
+  fi
 
   if [ "$RUNTIME" = "codex" ]; then
+    variant_context="runtime=codex"
     if [ -f "$src/SKILL.openai.md" ]; then
       selected_file="SKILL.openai.md"
       has_variant=1
@@ -419,6 +431,7 @@ install_one() {
       return 1
     fi
   else
+    variant_context="track=$CODEX_TRACK"
     if [ -f "$src/SKILL.${CODEX_TRACK}.md" ]; then
       variant_file="SKILL.${CODEX_TRACK}.md"
       has_variant=1
@@ -441,6 +454,9 @@ install_one() {
       selected_file="SKILL.md"
     fi
   fi
+  if [ "$selected_file" = "SKILL.md" ] && [ "$has_any_variant" -eq 1 ]; then
+    materialize_variant=1
+  fi
 
   if [ -e "$dst" ] || [ -L "$dst" ]; then
     if [ "$FORCE" -eq 0 ]; then
@@ -455,7 +471,7 @@ install_one() {
 
   if [ "$DRY_RUN" -eq 1 ]; then
     if [ "$materialize_variant" -eq 1 ]; then
-      log_ok "would $action (copy, track=$CODEX_TRACK): $name ← $src ($selected_file → SKILL.md)"
+      log_ok "would $action (copy, $variant_context): $name ← $src ($selected_file -> SKILL.md)"
     elif [ "$MODE" = "link" ]; then
       log_ok "would $action (symlink): $name → $src"
     else
@@ -483,7 +499,7 @@ install_one() {
       rm -f "$dst/SKILL.claude.md" "$dst/SKILL.codex.md" "$dst/SKILL.openai.md"
     fi
     cp "$src/$selected_file" "$dst/SKILL.md"
-    log_ok "$action (copy, track=$CODEX_TRACK): $name"
+    log_ok "$action (copy, $variant_context): $name"
   elif [ "$MODE" = "link" ]; then
     # Use absolute symlink so the target is resilient to cwd changes.
     ln -s "$src" "$dst"

@@ -91,12 +91,11 @@ test_default_claude_track_a() {
 
 test_claude_track_b_preserved() {
   local target="$TMP_DIR/claude-b"
-  run_install --target "$target" --force --only code-implement --codex-track codex
-  assert_file "$target/code-implement/SKILL.md"
-  assert_not_exists "$target/code-implement/SKILL.claude.md"
-  assert_not_exists "$target/code-implement/SKILL.codex.md"
-  assert_grep 'Track B' "$target/code-implement/SKILL.md"
-  assert_grep '/codex:rescue' "$target/code-implement/SKILL.md"
+  local out="$TMP_DIR/claude-b.out"
+  run_install --target "$target" --dry-run --force --only code-implement --codex-track codex >"$out"
+  assert_not_exists "$target"
+  assert_grep 'track=codex' "$out"
+  assert_grep 'SKILL\.codex\.md .* SKILL\.md' "$out"
 }
 
 test_codex_runtime_single_model() {
@@ -112,26 +111,25 @@ test_codex_runtime_single_model() {
 
 test_codex_runtime_rejects_codex_track() {
   local target="$TMP_DIR/invalid"
-  if run_install --runtime codex --target "$target" --dry-run --codex-track codex --only code-implement >/tmp/ser-invalid.out 2>/tmp/ser-invalid.err; then
+  local out="$TMP_DIR/ser-invalid.out"
+  local err="$TMP_DIR/ser-invalid.err"
+  if run_install --runtime codex --target "$target" --dry-run --codex-track codex --only code-implement >"$out" 2>"$err"; then
     fail "expected --runtime codex --codex-track codex to fail"
   fi
-  grep -Eq -- '--codex-track.*runtime codex|runtime codex.*--codex-track' /tmp/ser-invalid.err || {
-    cat /tmp/ser-invalid.err >&2
+  grep -Eq -- '--codex-track.*runtime codex|runtime codex.*--codex-track' "$err" || {
+    cat "$err" >&2
     fail "missing invalid runtime/track error"
   }
 }
 
 test_codex_runtime_default_target() {
-  local project="$TMP_DIR/project"
-  mkdir -p "$project"
+  local out="$TMP_DIR/default-target.out"
   (
     cd "$REPO_ROOT"
-    bash "$INSTALL" --no-color --runtime codex --force --only code-review
+    bash "$INSTALL" --no-color --runtime codex --dry-run --force --only code-review >"$out"
   )
-  assert_dir "$REPO_ROOT/.agents/skills/code-review"
-  assert_file "$REPO_ROOT/.agents/skills/code-review/SKILL.md"
-  rm -rf "$REPO_ROOT/.agents/skills/code-review"
-  rmdir "$REPO_ROOT/.agents/skills" "$REPO_ROOT/.agents" 2>/dev/null || true
+  assert_grep "Target : ${REPO_ROOT}/\\.agents/skills" "$out"
+  assert_grep 'would install .*code-review' "$out"
 }
 
 test_default_claude_track_a

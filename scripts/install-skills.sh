@@ -159,7 +159,7 @@ done
 
 if [ "$RUNTIME" = "codex" ]; then
   if [ "$CODEX_TRACK_SET" -eq 1 ]; then
-    log_error "--codex-track is only valid with --runtime claude; Codex runtime is single-model."
+    log_error "--codex-track is only valid with --runtime claude; --runtime codex is single-model."
     exit 1
   fi
   if [ "$USER_TARGET" -eq 1 ]; then

@@ -356,7 +356,7 @@ Create `skills/code-implement/SKILL.openai.md` by adapting `SKILL.claude.md` wit
 
 **Shared context**: None at this stage; if a roadmap is used, that file carries the spec.
 
-**Runtime**: Codex-native. The active Codex session implements directly with strict TDD. Do not delegate to `/codex:*` commands.
+**Runtime**: Codex-native. The active Codex session implements directly with strict TDD. Do not delegate to a second model or platform-specific slash-command executor.
 ```
 
 Also replace the SER-framework guard row with:
@@ -378,7 +378,7 @@ Create `skills/code-review/SKILL.openai.md` by adapting `SKILL.claude.md` with:
 ```markdown
 # code-review (Codex-native single-reviewer)
 
-**Runtime**: Codex-native. The active Codex session performs a single-reviewer plan-compliance and quality review. Do not invoke `/codex:review`.
+**Runtime**: Codex-native. The active Codex session performs a single-reviewer plan-compliance and quality review. Do not invoke a second-model review command.
 ```
 
 Replace reviewer labels with:
@@ -402,7 +402,7 @@ Create `skills/writing-review/SKILL.openai.md` from `SKILL.claude.md` with:
 ```markdown
 # writing-review (Codex-native single-reviewer)
 
-**Runtime**: Codex-native. Produce one rigorous simulated peer review directly. Do not call subagents, `/codex:*`, or cross-model MCP reviewers.
+**Runtime**: Codex-native. Produce one rigorous simulated peer review directly. Do not call subagents, platform-specific slash-command executors, or cross-model reviewers.
 ```
 
 Keep the same review dimensions and output format as Track A. Replace any “Claude subagent” or “external reviewer” language with “single Codex-native reviewer”.
@@ -414,7 +414,7 @@ Create `skills/idea-verify/SKILL.openai.md` from `SKILL.claude.md` with:
 ```markdown
 # idea-verify (Codex-native single-model)
 
-**Runtime**: Codex-native. Verify novelty by combining hard sources and the active Codex session's analysis. Do not use `/codex:*`, `mcp__codex__codex`, or a second model reviewer.
+**Runtime**: Codex-native. Verify novelty by combining hard sources and the active Codex session's analysis. Do not use platform-specific slash-command executors, cross-model MCP reviewers, or a second model reviewer.
 ```
 
 Keep DBLP/arXiv evidence collection and final verdict structure. Replace “Claude subagent” with “Codex analysis”.

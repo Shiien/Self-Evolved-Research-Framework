@@ -7,6 +7,8 @@ description: Merge an unpacked SER distribution (ser-vX.Y/) into an existing res
 
 **Trigger**: User says "integrate SER", "merge into SER framework", "set up SER for this project", or has an unpacked `ser-vX.Y/` directory alongside their existing research project.
 
+**Runtime**: Codex-native single-model path. The active Codex session performs integration directly. Do not call platform-specific slash-command executors, cross-model MCP reviewers, or a second model reviewer.
+
 ## Prerequisites
 
 - An unpacked SER distribution (e.g., `ser-vX.Y/`) in or near the project root

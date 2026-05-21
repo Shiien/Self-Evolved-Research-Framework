@@ -52,7 +52,11 @@ Execute these in order. Each is idempotent (safe to re-run).
 ```bash
 # From project root:
 mkdir -p .agents/skills
-cp -rn ser-vX.Y/skills/. .agents/skills/  # SER skill directories (including _shared/)
+bash ser-vX.Y/scripts/install-skills.sh \
+  --runtime codex \
+  --source ser-vX.Y/skills \
+  --target .agents/skills \
+  --force
 cp -rn ser-vX.Y/memory .          # Memory system (templates)
 cp -rn ser-vX.Y/scripts .         # Utility scripts
 # Create empty SER directories (only if they don't exist):

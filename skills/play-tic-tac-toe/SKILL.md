@@ -1,11 +1,45 @@
-<<EVOLVE NOTE (shim+engine) - textual gradient summary>>
-  [g1] Identify concrete edits to the parent skill specs that would have prevented the observed failures and amplified the observed successes. Keep YAML frontmatter intact. Preserve public trigger semantics. Be specific - cite section names when possible. Session critique: [play-tic-tac-toe] net_delta=-1 td=-1.23 strength=hard evidence="result=forfeit; moves=[]; total_mistakes=0; forfeit_side=X; bad_output='<engine error: RuntimeError: claude CLI exited 1: (no stderr)>'; last_err=RuntimeError'"
-<<END EVOLVE NOTE>>
-<<EVOLVE NOTE (shim+engine) - textual gradient summary>>
-  [g1] Identify concrete edits to the parent skill specs that would have prevented the observed failures and amplified the observed successes. Keep YAML frontmatter intact. Preserve public trigger semantics. Be specific - cite section names when possible. Session critique: [play-tic-tac-toe] net_delta=-1 td=-1.62 strength=hard evidence="result=forfeit; moves=[]; total_mistakes=0; forfeit_side=X; bad_output='<engine error: RuntimeError: claude CLI exited 1: (no stderr)>'; last_err=RuntimeError'"
-<<END EVOLVE NOTE>>
-<<EVOLVE NOTE (shim+engine) - textual gradient summary>>
-  [g1] Identify concrete edits to the parent skill specs that would have prevented the observed failures and amplified the observed successes. Keep YAML frontmatter intact. Preserve public trigger semantics. Be specific - cite section names when possible. Session critique: [play-tic-tac-toe] net_delta=-1 td=-2.07 strength=hard evidence="result=forfeit; moves=[X5 O1 X9 O7 X4 O6 X3 O8]; total_mistakes=0; forfeit_side=X; bad_output='<engine error: RuntimeError: claude CLI exited 1: (no stderr)>'; last_err=RuntimeError'"
-<<END EVOLVE NOTE>>
-<<EVOLVE NOTE (shim+engine) - textual gradient summary>>
-Add a "Strategy" section after "Move format" that prioritizes moves: (1) take a winning cell if available this turn; (2) block opponent's winning cell if they can win next turn; (3) prefer
+---
+name: play-tic-tac-toe
+description: Play an interactive game of tic-tac-toe with the user. Use when the user asks to play tic-tac-toe, noughts and crosses, or a simple X/O board game.
+---
+
+# play-tic-tac-toe
+
+**Trigger**: User asks to play tic-tac-toe, noughts and crosses, or a simple X/O board game.
+
+## Board
+
+Use a 3x3 board numbered left-to-right, top-to-bottom:
+
+```text
+1 | 2 | 3
+--+---+--
+4 | 5 | 6
+--+---+--
+7 | 8 | 9
+```
+
+## Process
+
+- Ask who should play first if the user has not specified.
+- Assign `X` to the first player and `O` to the second player.
+- After each move, render the board and ask for the next move unless the game is over.
+- Reject moves outside `1`-`9` or moves into occupied cells; ask for a legal move instead.
+- Detect wins across rows, columns, and diagonals; detect draws when all cells are filled.
+
+## Move Format
+
+Accept either a bare cell number, such as `5`, or short natural language like "put X in 5".
+
+## Strategy
+
+When choosing a move:
+
+1. Take a winning cell if one is available this turn.
+2. Block the opponent's winning cell if they can win next turn.
+3. Prefer center, then corners, then edges.
+4. Avoid moves that allow the opponent an immediate fork when a safer legal move exists.
+
+## Output
+
+Keep turns concise: board, result if any, and the next prompt.

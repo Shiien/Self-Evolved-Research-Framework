@@ -1,6 +1,13 @@
 ---
 name: idea-refine
-description: Turn a rough research idea (from `idea-discover` or user) into a concrete structured proposal — problem statement, proposed approach, key differentiation vs SOTA, minimal validation experiment, and resource requirements. Saves to `methodology/ideas/{slug}.md` with `status: refined`. Triggers on "refine idea", "make this concrete", "sharpen the proposal", "细化想法", or auto-chains after `idea-verify` confirms novelty. Closes the gap between ideation (`idea-discover → idea-verify`) and experimental design (`experiment-plan`).
+description: >-
+  Turn a rough research idea (from `idea-discover` or user) into a concrete
+  structured proposal: problem statement, proposed approach, key differentiation
+  vs SOTA, minimal validation experiment, and resource requirements. Saves to
+  `methodology/ideas/{slug}.md` with `status: refined`. Triggers on "refine
+  idea", "make this concrete", "sharpen the proposal", "细化想法", or auto-chains
+  after `idea-verify` confirms novelty. Closes the gap between ideation
+  (`idea-discover -> idea-verify`) and experimental design (`experiment-plan`).
 ---
 
 # idea-refine

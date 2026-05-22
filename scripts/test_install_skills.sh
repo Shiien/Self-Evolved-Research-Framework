@@ -46,6 +46,45 @@ assert_no_tree_grep() {
   fi
 }
 
+assert_valid_skill_frontmatter_tree() {
+  local root="$1"
+  python3 - "$root" <<'PY'
+from pathlib import Path
+import sys
+
+import yaml
+
+root = Path(sys.argv[1])
+bad = []
+
+for path in sorted(root.rglob("SKILL.md")):
+    text = path.read_text(encoding="utf-8")
+    if not text.startswith("---\n"):
+        bad.append(f"{path}: missing YAML frontmatter delimited by ---")
+        continue
+    try:
+        _, frontmatter, _ = text.split("---", 2)
+    except ValueError:
+        bad.append(f"{path}: missing closing YAML frontmatter delimiter")
+        continue
+    try:
+        data = yaml.safe_load(frontmatter)
+    except Exception as exc:
+        bad.append(f"{path}: invalid YAML frontmatter: {exc}")
+        continue
+    if not isinstance(data, dict):
+        bad.append(f"{path}: YAML frontmatter must be a mapping")
+        continue
+    for key in ("name", "description"):
+        if not data.get(key):
+            bad.append(f"{path}: YAML frontmatter missing {key}")
+
+if bad:
+    print("\n".join(bad), file=sys.stderr)
+    sys.exit(1)
+PY
+}
+
 run_install() {
   bash "$INSTALL" --no-color "$@"
 }
@@ -127,6 +166,7 @@ test_codex_runtime_installed_surface_is_clean() {
   assert_not_exists "$target/fey-r/.gitignore"
   assert_not_exists "$target/fey-r/.git"
   assert_no_tree_grep 'Claude Code|\.claude|CLAUDE\.md|/codex:|mcp__codex__codex' "$target"
+  assert_valid_skill_frontmatter_tree "$target"
 }
 
 test_codex_runtime_rejects_codex_track() {

@@ -1,6 +1,6 @@
 ---
 name: code-implement
-description: Write or modify code with strict TDD discipline. Small tasks are handled by Claude directly (Red-Green-Refactor). Medium/large tasks read `docs/implement_roadmap/YYYY-MM-DD-{name}.md` and are delegated to Codex via `/codex:rescue --write --fresh` with a four-tag contract; Codex runs TDD internally via its own Superpowers. SER framework files always stay with Claude. Triggers on "implement X", "add feature Y", "execute the roadmap", or any code-writing request after a roadmap is ready.
+description: Write or modify code with strict TDD discipline. Small tasks are handled by Claude directly (Red-Green-Refactor). Medium/large tasks read `docs/implement_roadmap/YYYY-MM-DD-{name}.md` and are delegated to the `codex:codex-rescue` subagent via the Agent tool (flags `--write --fresh [--background]`) using a four-tag prompt contract; Codex runs TDD internally via its own Superpowers. SER framework files always stay with Claude. Triggers on "implement X", "add feature Y", "execute the roadmap", or any code-writing request after a roadmap is ready.
 ---
 
 # code-implement (Track B — Codex delegated)
@@ -101,11 +101,17 @@ Do not omit any tag. Do not reorder.
 
 ### Step 4c — Invoke
 
-Per `skills/_shared/codex-contract.md § 4`:
+Per `skills/_shared/codex-contract.md § 4`, from Claude's main session Codex is ONLY reachable via the `Agent` tool with `subagent_type: "codex:codex-rescue"`. Do NOT call the `Skill` tool with `codex:rescue` and do NOT emit the literal `/codex:rescue ...` slash-command string — both paths return success without spawning a Codex job.
 
 ```
-/codex:rescue --write --fresh "{full four-tag prompt}"
+Agent({
+  subagent_type: "codex:codex-rescue",
+  description: "Codex — {short roadmap name}",
+  prompt: "--write --fresh [--background]\n\n{full four-tag prompt built in Step 4b}"
+})
 ```
+
+`--write` and `--fresh` are mandatory. The flags can appear anywhere in the `prompt`; the subagent strips them before forwarding to `codex-companion.mjs task`.
 
 Background flag:
 
@@ -115,6 +121,16 @@ Background flag:
 | Roadmap has > 3 steps OR estimated > 5 min | add `--background` |
 
 If `--background` is used, tell the user Codex is working and the session can proceed.
+
+### Step 4c.v — Verify the call landed (takes seconds, catches silent failures)
+
+Immediately after the `Agent` call returns, sanity-check that Codex actually started:
+
+```bash
+ls -lt /tmp/codex-companion/*/jobs/ 2>/dev/null | head -5
+```
+
+If no job file was created in the last minute, the invocation used the wrong channel (see `skills/_shared/codex-contract.md § 5` last row). Do NOT retry the Skill tool or the slash-command string — the bug is the channel, not Codex. Re-invoke via `Agent` exactly as shown above.
 
 ### Step 4d — Post-invocation
 

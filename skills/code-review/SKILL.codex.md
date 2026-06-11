@@ -68,10 +68,16 @@ Identical to Track A `code-review` full mode (see `SKILL.claude.md § Step 3`).
 
 ## Step 3 — Review B: Codex code quality
 
-Run:
+From Claude's main session, the `/codex:review` slash command is NOT reachable via the `Skill` tool (that path silently renders the command body as text without executing the underlying Bash — see `skills/_shared/codex-contract.md § 4` for the same pattern on rescue). There is also no dedicated `codex:codex-review` subagent. Invoke the same runner directly via `Bash`:
+
+```bash
+CODEX_PLUGIN_ROOT=$(ls -d ~/.claude/plugins/marketplaces/*/plugins/codex 2>/dev/null | head -1)
+node "$CODEX_PLUGIN_ROOT/scripts/codex-companion.mjs" review
 ```
-/codex:review
-```
+
+For long reviews, set `run_in_background: true` on the `Bash` call and tell the user Codex review is running in the background. The stdout IS Codex's review output — preserve it verbatim in the merged report.
+
+After the call returns, sanity-check with `ls -lt /tmp/codex-companion/*/jobs/ | head` that a new review job was created. If not, the path resolution failed — inspect `CODEX_PLUGIN_ROOT` and re-run.
 
 Codex reviews the working tree diff independently. Its focus:
 - Logic errors and edge cases

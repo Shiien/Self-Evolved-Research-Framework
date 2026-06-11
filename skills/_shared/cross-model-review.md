@@ -33,7 +33,7 @@ call must bundle:
    without ambiguity (e.g. numbered sections, fixed field names).
 
 Follow `codex:gpt-5-4-prompting` for phrasing style. Keep prompts under ~3k
-tokens where possible; Codex/GPT-5.4 performs better on focused briefs than
+tokens where possible; Codex/GPT-5.5 performs better on focused briefs than
 long dumps.
 
 ---
@@ -73,7 +73,7 @@ Decision procedure:
    `somewhat novel` with confidence = Low. Flag for human with both
    soft-source opinions.
 4. **If all four find nothing** → verdict = `highly novel` with
-   confidence = High. Note that Codex (GPT-5.4 training cutoff is later
+   confidence = High. Note that Codex (GPT-5.5 training cutoff is later
    than Claude's) is the more recent knowledge check.
 
 Merge the "closest existing work" list across sources by deduplication on

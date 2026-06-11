@@ -1,9 +1,10 @@
 # Codex Contract — Shared Infrastructure (Track B Only)
 
 > Shared reference for **codex-track** variants of `code-implement` and
-> `code-review`. Defines the prompt contract for calling `/codex:rescue`,
-> the forbidden-path list, background threshold, error handling, and
-> external dependencies.
+> `code-review`. Defines the prompt contract for calling Codex, the
+> correct invocation channel from Claude's main session, the
+> forbidden-path list, background threshold, error handling, and external
+> dependencies.
 >
 > Not a skill itself (no `SKILL.md`). The codex-track SKILL.md files
 > (`code-implement/SKILL.codex.md`, `code-review/SKILL.codex.md`) direct
@@ -19,11 +20,21 @@
 
 Track B installation REQUIRES all of:
 
-- `/codex:rescue` — from `codex-plugin-cc`. Supports flags `--write`,
-  `--fresh`, `--resume`, `--background`. Must be authenticated (verified
-  at install via `/codex:setup`).
-- `/codex:review` — from `codex-plugin-cc`. Runs Codex against local git
-  state.
+- **Codex rescue runtime** — from `codex-plugin-cc`.
+  - User-facing slash command: `/codex:rescue` (supports `--write`,
+    `--fresh`, `--resume`, `--background`). This is for human input.
+  - **Claude-side callable: the `codex:codex-rescue` subagent invoked
+    via the `Agent` tool.** SER skills always go through this path — see
+    §4 for why the `Skill` tool and the raw slash-command string do
+    NOT work from Claude's main session.
+  - Both paths funnel into the same `scripts/codex-companion.mjs task`
+    runner. Must be authenticated (verified at install via
+    `/codex:setup`).
+- **Codex review runtime** — from `codex-plugin-cc`.
+  - User-facing slash command: `/codex:review`.
+  - Claude-side callable: direct `Bash` to
+    `scripts/codex-companion.mjs review` (no dedicated subagent
+    exists). Path resolution is shown in `code-review/SKILL.codex.md § 3`.
 - Codex-side Superpowers at `~/.agents/skills/superpowers/` — Codex needs
   its own TDD / planning / review skills loaded. Verified at install.
 
@@ -122,17 +133,46 @@ final report.
 
 ## 4. Invocation
 
+### Channel — Agent tool, not Skill tool, not bare slash-command text
+
+From Claude's main session, Codex MUST be invoked through the `Agent` tool
+with `subagent_type: "codex:codex-rescue"`. The following look-alikes all
+fail silently (they return success but create no job under
+`/tmp/codex-companion/*/jobs/` and produce no entries in
+`~/.codex/log/codex-tui.log`):
+
+- ❌ `Skill` tool with `skill: "codex:rescue"` — the Skill tool only
+  renders the slash-command body as instruction text. The slash-command's
+  `context: fork` + `allowed-tools: Bash(node:*)` only fire when a human
+  user types `/codex:rescue` directly in the chat. Claude invoking it via
+  `Skill` does NOT fork and does NOT execute the Bash call.
+- ❌ Emitting the literal string `/codex:rescue --write --fresh ...` in
+  Claude's response — that is human input syntax, not a tool call.
+- ❌ Direct `Bash` to `node "${CLAUDE_PLUGIN_ROOT}/scripts/codex-companion.mjs" task ...`
+  — `CLAUDE_PLUGIN_ROOT` is not set in Claude's main-session shell, so the
+  path resolves to `/scripts/codex-companion.mjs` and the call fails.
+  Subagents defined inside the codex plugin DO have `CLAUDE_PLUGIN_ROOT`
+  set, which is why the `Agent` path works.
+
 ### Single invocation, no loop
 
 ```
-/codex:rescue --write --fresh "{full four-tag prompt}"
+Agent({
+  subagent_type: "codex:codex-rescue",
+  description: "Codex — {short roadmap name}",
+  prompt: "--write --fresh [--background]\n\n{full four-tag prompt body}"
+})
 ```
 
-- `--write` is mandatory. Without it, Codex reads-only.
+- `--write` is mandatory. Without it, Codex runs read-only.
 - `--fresh` is mandatory. SER has no loop; each code-implement run is a
   fresh thread.
+- `--background` is added per the threshold table below.
 - `--resume` is **not used** in this contract (loop removed from SER
   workflow).
+- The flags may appear anywhere in the `prompt`. The `codex:codex-rescue`
+  subagent parses and strips them before forwarding the remaining task
+  text to `scripts/codex-companion.mjs task ...`.
 
 ### Background threshold
 
@@ -157,6 +197,7 @@ result is collected later.
 | Codex modifies files outside roadmap scope | Note for `code-review` phase. Not automatically wrong — Codex may have had good reason. Review decides. |
 | `/codex:setup` check fails at runtime | Degrade to Claude direct TDD for this task. Follow the roadmap step-by-step using Track A semantics. Notify user with the failure reason and recovery hint (`/codex:setup` to re-auth). |
 | Roadmap touches `.claude/` `skills/` `hooks/` `config.yaml` `CLAUDE.md` | Never send to Codex regardless of track. Claude handles these directly. |
+| Invocation reports success but `ls -lt /tmp/codex-companion/*/jobs/ \| head` shows no new job file for this run, AND `~/.codex/log/codex-tui.log` has no new entries since the call | Wrong invocation channel. You called `Skill: codex:rescue` or emitted `/codex:rescue ...` as text instead of using `Agent(subagent_type: "codex:codex-rescue")`. See §4 for the only working channel from Claude's main session. Do NOT retry the same channel; re-invoke via `Agent`. |
 
 ---
 

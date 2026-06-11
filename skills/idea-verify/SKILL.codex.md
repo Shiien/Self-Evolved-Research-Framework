@@ -1,6 +1,6 @@
 ---
 name: idea-verify
-description: Check an idea's novelty by querying DBLP + arXiv + a Claude subagent + a Codex reviewer (GPT-5.4 via `mcp__codex__codex`), then write a verdict (highly novel / somewhat novel / incremental / already exists) with closest existing work. The Codex source catches prior work published after Claude's training cutoff. Triggers on "is this idea novel?", "has this been done?", "check novelty", and follows idea-discover.
+description: Check an idea's novelty by querying DBLP + arXiv + a Claude subagent + a Codex reviewer (GPT-5.5 via `mcp__codex__codex`), then write a verdict (highly novel / somewhat novel / incremental / already exists) with closest existing work. The Codex source catches prior work published after Claude's training cutoff. Triggers on "is this idea novel?", "has this been done?", "check novelty", and follows idea-discover.
 ---
 
 # idea-verify (codex track)
@@ -48,7 +48,7 @@ description: Check an idea's novelty by querying DBLP + arXiv + a Claude subagen
      1. Hard sources (DBLP/arXiv) find direct match → verdict `already exists` or `incremental`; soft sources (c/d) only refine the citation list
      2. Hard sources empty but c AND d both say "already exists / incremental" → `incremental` with Medium confidence; surface both soft-source citations
      3. Hard sources empty, c and d disagree → `somewhat novel` with Low confidence; flag for human with both opinions
-     4. All four empty → `highly novel` with High confidence (Codex/GPT-5.4 later training cutoff strengthens this)
+     4. All four empty → `highly novel` with High confidence (Codex/GPT-5.5 later training cutoff strengthens this)
    - Merge "closest existing work" list by deduplication on (title, year); tag each paper with its source(s)
 
    Report format:

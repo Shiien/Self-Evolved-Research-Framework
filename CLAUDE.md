@@ -238,7 +238,10 @@ are `memory-write`, `memory-retrieve`, `memory-consolidate`, `memory-forget`.
 │   ├── _shared/           # Cross-cutting infra read by related skills
 │   │   ├── checklist-engine.md
 │   │   ├── memory-tiers.md
-│   │   └── evolve-cycle.md
+│   │   ├── evolve-cycle.md
+│   │   ├── codex-contract.md       # Codex-track prompt contract (code-implement/review)
+│   │   ├── cross-model-review.md   # MCP invocation + 4-source synthesis (writing-review / idea-verify)
+│   │   └── git-conventions.md
 │   ├── external/          # External skills (git submodules)
 │   │   └── fey-r/         # Feynman-method paper reading
 │   └── td-nl/             # TD-NL skill evolution infrastructure
@@ -248,18 +251,46 @@ are `memory-write`, `memory-retrieve`, `memory-consolidate`, `memory-forget`.
 │       └── history/        # Spec version archive for rollback
 ├── scripts/               # Utility scripts (citation, notify, analyzer, install-skills)
 ├── memory/                # Persistent three-tier memory
-│   ├── episodes/          # Episodic memories (recent)
-│   ├── topics/            # Consolidated semantic memories
-│   └── procedures/        # Permanent procedural memories
+│   ├── MEMORY.md          # Always-loaded memory index (written by memory-write)
+│   ├── episodes/          # Episodic memories (recent) — YYYY-MM-DD-NNN.md
+│   ├── topics/            # Consolidated semantic memories — {topic}-{slug}.md
+│   └── procedures/        # Permanent procedural memories — {procedure}-{slug}.md
 ├── background/            # Research background materials
-├── methodology/           # Research methods + ideas
-├── experiments/           # Experiment code + results
-├── logs/digest/           # Session logs
-├── outputs/               # Research deliverables (short/mid/long-term + paper/)
+├── methodology/
+│   ├── approach.md        # Authoritative research direction (anchor for writing-* and paper-illustrate)
+│   └── ideas/             # Candidate ideas (idea-discover) — YYYY-MM-DD-{slug}.md
+├── experiments/
+│   ├── {run_id}/          # Per-run configs/results (experiment-run)
+│   └── dse/{name}/        # Design-space exploration sweeps (experiment-dse)
+├── logs/
+│   ├── digest/            # Session logs (session-close) — YYYY-MM-DD.yaml + SUMMARY.md
+│   ├── experiments/       # Per-experiment run logs (experiment-run / -monitor) — {exp_id}.yaml
+│   └── progress/          # Progress snapshots (progress-capture) — YYYY-MM-DD-{slug}.md
+├── paper/                 # Paper sources (written by writing-*, paper-*, proof-write)
+│   ├── papers/            # LaTeX sections + references.bib (writing-draft, paper-compile)
+│   ├── figures/           # Figure assets (paper-figure, paper-illustrate)
+│   │   └── scripts/       # Plot scripts (paper-figure) — {name}.py or .tex
+│   ├── proofs/            # Camera-ready proof .tex files (proof-write camera-ready mode)
+│   ├── theory/            # Camera-ready theory notes (read by writing-draft)
+│   └── reviews/           # Simulated peer reviews (writing-review)
+├── outputs/               # Research deliverables
+│   ├── short-term/        # Short-term outputs (see also checklists/short-term)
+│   ├── mid-term/
+│   ├── long-term/
+│   ├── paper/             # Compiled paper PDFs (paper-compile) — {name}.pdf
+│   ├── visuals/           # Visual identity / pixel art (paper-art) — {name}.svg
+│   └── {topic}/           # Topic-scoped proof/theory artifacts
+│       ├── proofs/        # Formalized proofs (proof-formalize) — {theorem_name}.tex
+│       ├── theory/        # Formalized theory (theory-formalize)
+│       ├── counterexamples/   # Counterexample reports (theory-counterexample)
+│       └── roadmaps/      # Proof decomposition roadmaps (theory-decompose)
 ├── resources/             # Reference materials
-│   ├── papers/            # Paper reading notes
+│   ├── papers/            # Paper reading notes — {paper_id}.md + README.md
+│   │   └── searches/      # Literature search results (paper-lit-search) — YYYY-MM-DD-{query}.md
 │   └── repos/             # Cloned reference repositories
 └── docs/                  # Plans, reports, process docs
+    ├── code_reviews/      # Code review reports (code-review) — YYYY-MM-DD-{name}.md
+    └── implement_roadmap/ # Implementation roadmaps (code-roadmap) — YYYY-MM-DD-{name}.md
 ```
 
 ## Token Budget

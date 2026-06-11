@@ -1,6 +1,6 @@
 ---
 name: writing-review
-description: Simulate a conference peer review of a draft (Clarity / Novelty / Soundness / Presentation / Missing) and produce a review with Strong Accept to Reject verdict. Runs in cross-model adversarial mode with TWO external reviewers — a Claude subagent (upstream) and a Codex reviewer (GPT-5.4 via `mcp__codex__codex`) — for true cross-family independence, plus an auto-fix loop (max 3 rounds on codex track). Triggers on "review my draft", "peer review this", "simulate reviewer feedback", "thorough review".
+description: Simulate a conference peer review of a draft (Clarity / Novelty / Soundness / Presentation / Missing) and produce a review with Strong Accept to Reject verdict. Runs in cross-model adversarial mode with TWO external reviewers — a Claude subagent (upstream) and a Codex reviewer (GPT-5.5 via `mcp__codex__codex`) — for true cross-family independence, plus an auto-fix loop (max 3 rounds on codex track). Triggers on "review my draft", "peer review this", "simulate reviewer feedback", "thorough review".
 ---
 
 # writing-review (codex track)
@@ -30,7 +30,7 @@ description: Simulate a conference peer review of a draft (Clarity / Novelty / S
 
 ## Cross-Model Review Mode (codex track)
 
-When cross-model feedback is desired, `writing-review` operates in **3-way cross-model adversarial mode**: Claude主 evaluates internally, a Claude subagent reviews independently, and a Codex/GPT-5.4 reviewer adds a true out-of-family perspective. Suggested for full paper reviews or critical sections (introduction, methodology).
+When cross-model feedback is desired, `writing-review` operates in **3-way cross-model adversarial mode**: Claude主 evaluates internally, a Claude subagent reviews independently, and a Codex/GPT-5.5 reviewer adds a true out-of-family perspective. Suggested for full paper reviews or critical sections (introduction, methodology).
 
 **Shared context**: Before acting, Read `skills/_shared/cross-model-review.md` for the MCP invocation contract (§1), 3-way synthesize rules (§2.1), fallback when Codex is unavailable (§3), output conventions (§4), and loop-round budget (§5).
 

@@ -215,8 +215,30 @@ Tranche 2 executed 2026-07-13: 49 → 32 skills
 −`design-converge`, −`progress-capture`, −`paper-compare`, −`paper-index`;
 `experiment-monitor` polling → `harness ext-status`).
 
-Tranche 3 (remaining, decide with user): code-family (6) vs superpowers
-overlap + codex-track handling for `writing-review`/`idea-verify`/
-`code-implement`/`code-review`; `experiment-run` dispatch mechanics and
-`paper-compile` build pipeline → harness/scripts; possible `paper-figure`/
-`paper-illustrate`/`paper-art` merge into one `paper-assets` skill. Target ~20.
+Tranche 3 executed 2026-07-13: 33 → 27 skills (the tranche-2 tally of 32 had
+missed `skill-feedback`; corrected here):
+- `code-branch/roadmap/debug/commit` → `code` (BRANCH/ROADMAP/DEBUG/COMMIT
+  modes; the roadmap file format is preserved verbatim — it is the execution
+  contract `code-implement` consumes).
+- `paper-illustrate/figure/art/compile` → `paper-assets`
+  (ILLUSTRATE/FIGURE/ART/COMPILE modes); the deterministic LaTeX build
+  (main resolution, integrity pre-checks, pdflatex×3 + bibtex/biber, issue
+  summary) migrated to `scripts/compile_paper.sh`.
+- `experiment-run` dispatch mechanics → `python -m harness ext-launch`:
+  validates the 7-field contract BEFORE any side effect (no contract, no
+  launch), builds the nohup/ssh launch line, captures the PID, writes
+  `logs/experiments/{exp_id}.yaml` with the contract embedded. The skill
+  keeps only judgment (GPU selection, env verification).
+- Settled principle: **skills shipping codex-track variants stay standalone**
+  (`code-implement`, `code-review`, `writing-review`, `idea-verify`) —
+  merging them would either break the `--codex-track` installer mechanism or
+  force duplicating each merged body across two variant files. Folding them
+  further would require dropping the codex track or a variant-composition
+  installer feature; user decision if the count should go below 27.
+
+Final inventory (27): session-open, session-close, paper-lit-search,
+paper-read, paper-assets, writing, writing-review, theory, proof, idea,
+idea-verify, plan-suggest, decision-analyze, experiment-plan, experiment-dse,
+experiment-run, experiment-monitor, experiment-analyze, code, code-implement,
+code-review, checklist, memory, skill-feedback, evolve-suggest, evolve-apply,
+project-integrate.

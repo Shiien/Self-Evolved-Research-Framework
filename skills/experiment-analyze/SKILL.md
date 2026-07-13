@@ -27,7 +27,7 @@ Judgment happens against criteria written BEFORE the result existed.
    metrics separate; a claim confirmed only on dev metrics is not confirmed.
 4. **Guardrails** (from `CLAUDE.md § Evaluation Guardrails`):
    - a crash/NaN/OOM is a failure record, NOT negative evidence — route to
-     `code-debug` / resume instead of a verdict;
+     `code` (debug mode) / resume instead of a verdict;
    - single noisy runs get `strength: weak (n=1)` — never "shows" or
      "proves";
    - if the observed result makes a different criterion look more
@@ -47,5 +47,5 @@ Judgment happens against criteria written BEFORE the result existed.
 **Outputs**: verdict + updated `RESEARCH_STATE.md` / `EXPERIMENTS.json`; analysis inline
 **Token**: ~3-8K
 **Composition**: supported core claim → `writing` (draft mode) + `checklist`
-(update mode); contradicted → `decision-analyze`; crashed → `code-debug`;
+(update mode); contradicted → `decision-analyze`; crashed → `code` (debug mode);
 inconclusive → `experiment-plan` for a sharper contract.

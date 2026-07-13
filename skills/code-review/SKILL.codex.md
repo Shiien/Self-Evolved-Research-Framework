@@ -164,7 +164,7 @@ Save to `docs/code_reviews/YYYY-MM-DD-{roadmap-name}.md` (full mode) or `docs/co
 
 ## Step 7 — Deliver the verdict
 
-- **PASS** → suggest `code-commit`.
+- **PASS** → suggest `code` (commit mode).
 - **FAIL** → surface report to user. Do NOT auto-loop back to `code-implement`. User decides: manual fix, re-run `code-implement`, redesign roadmap, or commit with known issues.
 
 ---
@@ -187,13 +187,13 @@ When Codex is unavailable the skill degrades to Review A only (Track A behavior)
 [code-review / codex] Review complete — {PASS | FAIL}
   Mode: {full | lightweight | degraded (B unavailable)}
   Report: docs/code_reviews/{path}
-  Next: code-commit (if PASS) or user decision (if FAIL)
+  Next: the code skill's commit mode (if PASS) or user decision (if FAIL)
 ```
 
 **Inputs**: `git diff {base_sha}` + `git status` + roadmap (if any) + Codex's `/codex:review` output
 **Outputs**: `docs/code_reviews/YYYY-MM-DD-{name}.md`
 **Token**: ~5-12K Claude-side (Codex usage is separate)
 **Composition**:
-- PASS → `code-commit`
+- PASS → `code` (commit mode)
 - FAIL → surface to user, no automatic chaining
 - Codex unavailable → proceed with Review A only, alert user

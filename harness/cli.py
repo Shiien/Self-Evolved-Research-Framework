@@ -296,6 +296,32 @@ def cmd_ext_status(args) -> int:
     return 0
 
 
+def cmd_ext_launch(args) -> int:
+    from .ext_launch import launch
+
+    try:
+        launch(
+            REPO_ROOT,
+            command=args.command,
+            machine=args.machine,
+            gpu=args.gpu,
+            workdir=args.workdir,
+            contract_path=Path(args.contract),
+            ip=args.ip,
+            ssh_user=args.ssh_user,
+            exp_id=args.exp_id,
+            log_file=args.log_file,
+            dry_run=args.dry_run,
+        )
+    except (ContractError, OSError, yaml.YAMLError) as e:
+        print(f"[ext-launch] REFUSED — no contract, no launch: {e}", file=sys.stderr)
+        return 2
+    except RuntimeError as e:
+        print(f"[ext-launch] {e}", file=sys.stderr)
+        return 3
+    return 0
+
+
 def cmd_loop(args) -> int:
     from .loop import Loop
 
@@ -321,6 +347,21 @@ def main(argv=None) -> int:
     p.add_argument("--all", action="store_true",
                    help="include completed/failed records, not just active ones")
     p.set_defaults(fn=cmd_ext_status)
+
+    p = sub.add_parser("ext-launch",
+                       help="launch an external GPU run (refuses without a contract)")
+    p.add_argument("--command", required=True, help="full shell command to run")
+    p.add_argument("--machine", required=True, help="hostname, or 'local'")
+    p.add_argument("--gpu", required=True, help="CUDA_VISIBLE_DEVICES value")
+    p.add_argument("--workdir", required=True)
+    p.add_argument("--contract", required=True,
+                   help="YAML file: a contract mapping, or a config with a contract: block")
+    p.add_argument("--ip", default=None)
+    p.add_argument("--ssh-user", default="hsshi")
+    p.add_argument("--exp-id", default=None)
+    p.add_argument("--log-file", default=None)
+    p.add_argument("--dry-run", action="store_true")
+    p.set_defaults(fn=cmd_ext_launch)
 
     p = sub.add_parser("run")
     p.add_argument("config")

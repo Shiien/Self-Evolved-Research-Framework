@@ -141,6 +141,7 @@ python -m harness setup            # environment check
 python -m harness smoke-test       # full deterministic test suite (baseline check)
 python -m harness status           # project status: ledger, runs, external runs, checklists
 python -m harness ext-status --ssh # poll external GPU runs (liveness, log tails, error patterns)
+python -m harness ext-launch ...   # contract-gated external GPU launch (writes the run record)
 python -m harness run <config>     # one experiment → runs/<id>/
 python -m harness evaluate <run>   # (re-)evaluate against the stored contract
 python -m harness resume <run>     # finish a failed/partial run
@@ -201,16 +202,14 @@ rows first. Each skill lives in `skills/{name}/SKILL.md` (auto-loaded on fire).
 | Pattern | Skill |
 |---|---|
 | Outline / draft / polish a section | `writing` (outline / draft / polish modes); peer review → `writing-review` |
-| Architecture/pipeline diagram | `paper-illustrate`; data plot/table → `paper-figure`; decorative art → `paper-art` |
-| Compile paper / build PDF / "编译论文" | `paper-compile` |
+| Diagrams / plots / decorative art / build PDF ("编译论文") | `paper-assets` (illustrate / figure / art / compile modes; build runs `scripts/compile_paper.sh`) |
 
 **Code**
 | Pattern | Skill |
 |---|---|
-| Branch / worktree | `code-branch`; plan a large change → `code-roadmap` |
-| Implement / add feature | `code-implement` |
-| Bug / failing test | `code-debug` |
-| Review then commit | `code-review` → `code-commit` |
+| Branch / roadmap / debug / commit | `code` (branch / roadmap / debug / commit modes) |
+| Implement / add feature | `code-implement` (codex-track variants) |
+| Review code changes | `code-review` (codex-track variants) → `code` (commit mode) |
 
 **Deliverable tracking & memory**
 | Pattern | Skill |

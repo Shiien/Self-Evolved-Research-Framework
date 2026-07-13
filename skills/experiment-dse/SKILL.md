@@ -108,12 +108,12 @@ baseline_{metric}: {value, from plan.md}
 ## Sensitivity Analysis
 For each DSE axis:
 - **{param}**: {low / medium / high} sensitivity — {evidence: range of primary metric as param varies with others fixed at best}
-- Ranked bar chart: `experiments/dse/{name}/figures/sensitivity.pdf` (via paper-figure)
+- Ranked bar chart: `experiments/dse/{name}/figures/sensitivity.pdf` (via `paper-assets` figure mode)
 
 ## Search Landscape
 - 2D projections onto the top-2 most sensitive axes (pairplot or heatmap)
 - Trajectory (for sequential strategies): primary metric vs config index
-- `experiments/dse/{name}/figures/landscape.pdf` (via paper-figure)
+- `experiments/dse/{name}/figures/landscape.pdf` (via `paper-assets` figure mode)
 
 ## Pareto Frontier (if applicable)
 {primary metric vs cost / secondary, with non-dominated configs marked}
@@ -142,7 +142,7 @@ Emit a 4-line summary (dse_name, configs completed, best metric + Δ, recommende
 **Composition**:
 - Best config found → `experiment-run` for full-scale final runs (typically at higher seeds, full epochs)
 - Sensitivity ranked → update `experiments/{exp_name}/plan.md` variable mapping, drop non-sensitive axes
-- Sensitivity plots → `paper-figure` for the landscape / pareto plot; citable in Results as the "tuning protocol" figure
+- Sensitivity plots → `paper-assets` (figure mode) for the landscape / pareto plot; citable in Results as the "tuning protocol" figure
 - Pareto frontier matters for claim → `paper-compare` to tabulate against baselines on the pareto
 - Optimum at a boundary → re-plan with extended range (re-enter `experiment-plan` or re-sweep with revised configs)
 - Sweep exhausted budget without improvement → `decision-analyze` on whether to continue / abandon / re-plan

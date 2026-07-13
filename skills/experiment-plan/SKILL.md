@@ -1,17 +1,17 @@
 ---
 name: experiment-plan
-description: Design the full experimental spec before any runs — map paper claims to experiments, define independent / dependent variables, pin baselines, schedule ablations, estimate resources, and save to `experiments/{exp_name}/plan.md`. Triggers on "plan experiment", "design experiment", "what experiments should we run", "实验设计", or auto-chains after `idea-refine` produces a refined proposal. Precondition for `experiment-dse` (hyperparameter sweep over the plan) and `experiment-run` (single-config launch from the plan).
+description: Design the full experimental spec before any runs — map paper claims to experiments, define independent / dependent variables, pin baselines, schedule ablations, estimate resources, emit one pre-registered experiment contract per launchable experiment, enqueue them in EXPERIMENTS.json, and save to `experiments/{exp_name}/plan.md`. Triggers on "plan experiment", "design experiment", "what experiments should we run", "实验设计", or auto-chains after the `idea` skill's REFINE mode produces a refined proposal. Precondition for `experiment-dse` (hyperparameter sweep over the plan) and `experiment-run` (single-config launch from the plan — which refuses to launch without a contract).
 ---
 
 # experiment-plan
 
-**Trigger**: User has a refined idea or research question and asks what experiments to run, or auto-invoked after `idea-refine`. For hyperparameter sweeps over an already-planned experiment use `experiment-dse`; for launching a single config use `experiment-run`; for analyzing results use `experiment-analyze`.
+**Trigger**: User has a refined idea or research question and asks what experiments to run, or auto-invoked after `idea` (refine mode). For hyperparameter sweeps over an already-planned experiment use `experiment-dse`; for launching a single config use `experiment-run`; for analyzing results use `experiment-analyze`.
 
 **Process**:
 
 ### 1. Read context
 
-- Refined idea at `methodology/ideas/{slug}.md` (required — if missing, route to `idea-refine` first)
+- Refined idea at `methodology/ideas/{slug}.md` (required — if missing, route to `idea` refine mode first)
 - Existing experiment configs at `experiments/` (reuse schema conventions; don't invent a new config shape mid-project)
 - `resources/papers/` notes for prior baselines + their reported numbers (you will need these for the baselines table)
 - `config.yaml` resource budgets (GPU budget, deadline)
@@ -125,7 +125,36 @@ seeds: {N}
 
 ## Risks
 {2-4 items that would force a re-plan — e.g. "baseline B1 not reproducible within ±0.5 BLEU"}
+
+## Contracts
+{from step 7b — one per execution-order row}
 ```
+
+### 7b. Emit one experiment contract per execution-order row
+
+Each experiment that will actually be launched gets a contract, written NOW —
+before any result exists (`CLAUDE.md § Experiment Protocol`). `experiment-run`
+and the harness refuse to launch without one:
+
+```yaml
+hypothesis:            # the claim row this experiment tests, falsifiable
+change:                # the ONE conceptual factor varied vs the control
+controls:              # baseline + everything held fixed
+success_metric:        # metric + comparison + reference (decidable, no adjectives)
+failure_condition:     # result that counts AGAINST the hypothesis
+required_diagnostics:  # artifacts that must exist for any verdict
+budget:                # GPU-h / calls / wall-clock
+```
+
+Separate dev metrics (free to inspect during development) from held-out
+confirmation metrics (checked once, on the final artifact).
+
+### 7c. Enqueue in the ledger
+
+Append one entry per contract to `EXPERIMENTS.json`
+(`{"id", "question", "config", "status": "planned", "run": null, "verdict": null}`)
+and mirror the ordered list in `RESEARCH_STATE.md § Next recommended
+experiments`.
 
 ### 8. Handoff
 
@@ -138,9 +167,9 @@ Emit a 3-line summary (exp_name, core-claim count, total GPU-h estimate). Propos
 - Plan ready, hyperparameters ranges rather than single values → `experiment-dse` for the sweep
 - Plan ready, hyperparameters already committed → `experiment-run` for the first config
 - Plan exceeds budget → `decision-analyze` on which experiments to cut
-- Plan needs baseline reproductions first → `checklist-create(category=reproducibility)` to track each baseline's reproduction targets
-- Plan claims need theoretical backing → `theory-formalize` on the core claim before running experiments
-- Plan approved → `checklist-create(category=experiment)` with one item per execution-order row
+- Plan needs baseline reproductions first → `checklist` (create mode, category=reproducibility) to track each baseline's reproduction targets
+- Plan claims need theoretical backing → `theory` (formalize mode) on the core claim before running experiments
+- Plan approved → `checklist` (create mode, category=experiment) with one item per execution-order row
 
 ## Common pitfalls
 
@@ -153,4 +182,4 @@ Emit a 3-line summary (exp_name, core-claim count, total GPU-h estimate). Propos
 - **No trivial baseline** — without a random / majority-class floor, you can't detect a broken eval harness. Always include one.
 - **No reruns budget** — a plan with 0% headroom will overshoot on the first crash. Reserve 20%.
 - **Over-planning** — spec-ing 12 experiments before running any is a procrastination pattern. Plan the first 2–3 execution-order rows in detail, sketch the rest, and replan after the first results land.
-- **Plan decoupled from Results section order** — if the plan's claims don't map to the paper's section structure, the write-up phase will be painful. Cross-check against `writing-outline` before saving if the outline exists.
+- **Plan decoupled from Results section order** — if the plan's claims don't map to the paper's section structure, the write-up phase will be painful. Cross-check against the paper outline (`writing` outline mode artifact) before saving if it exists.

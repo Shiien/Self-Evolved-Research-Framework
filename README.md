@@ -17,18 +17,18 @@ You talk naturally. SER detects your intent and routes to the right micro-skill:
 |---------|-------------|
 | "I'm reading this paper..." | `paper-read` — structured notes |
 | "Search arXiv for X" | `paper-lit-search` — arXiv + Semantic Scholar |
-| "Is this proof correct?" | `proof-critique` — step-by-step check |
-| "Prove that …" | `proof-write` — first draft of the proof |
+| "Is this proof correct?" | `proof` (critique mode) — step-by-step check |
+| "Prove that …" | `proof` (write mode) — first draft of the proof |
 | "What should I do next?" | `plan-suggest` — prioritized tasks |
 | "Design the experiment" | `experiment-plan` — claims / variables / baselines |
 | "Sweep these hyperparameters" | `experiment-dse` — search strategy + configs |
 | "Run the experiment" | `experiment-run` — launch + monitoring |
-| "Any novel ideas for X?" | `idea-discover` → `idea-verify` → `idea-refine` |
-| "Write the introduction" | `writing-draft` — section draft |
+| "Any novel ideas for X?" | `idea` (discover) → `idea-verify` → `idea` (refine) |
+| "Write the introduction" | `writing` (draft mode) — section draft |
 | "Plot the results as a bar chart" | `paper-figure` — PGFPlots / matplotlib |
 | "Compile the paper" | `paper-compile` — pdflatex + bibtex/biber |
 | "Implement this feature" | `code-roadmap` → `code-implement` → `code-review` → `code-commit` |
-| (end conversation) | `session-close` — auto-saves summary |
+| (end conversation) | `session-close` — evidence-first wrap-up |
 
 Every skill execution generates feedback. Over sessions, SER proposes improvements
 to its own skill specs via natural language TD learning — the skills you use today
@@ -79,8 +79,8 @@ claude
 ```
 
 SER will automatically:
-1. Read your config and memory (`session-open`)
-2. Show a status banner
+1. Inject deterministic session context via the `SessionStart` hook (`scripts/session_context.sh`)
+2. Show a status banner (`session-open`) — research question, experiment ledger, last run
 3. Wait for your research request — no commands needed
 
 ### 5. Install the skills into `.claude/skills/`
@@ -99,7 +99,7 @@ bash scripts/install-skills.sh --force    # overwrite existing skills
 ```bash
 bash scripts/install-skills.sh --only 'paper-*'
 bash scripts/install-skills.sh --only 'code-*,paper-figure'
-bash scripts/install-skills.sh --exclude 'theory-*,proof-*'
+bash scripts/install-skills.sh --exclude 'theory,proof'
 ```
 
 **Codex track** — for skills that ship a Codex-augmented variant
@@ -122,7 +122,7 @@ Each SER skill lives in its own directory under `skills/` with a standard
 `SKILL.md` (YAML frontmatter + body), so Claude Code auto-discovers and
 auto-triggers them once installed.
 
-## Skills (57 SER + 1 external)
+## Skills (32 SER + 1 external — consolidating toward ~20, see REFACTOR_PLAN.md §7)
 
 Each skill lives in `skills/{skill-name}/SKILL.md` with standard YAML frontmatter.
 Skills marked † ship both `SKILL.claude.md` and `SKILL.codex.md` variants — pick
@@ -131,19 +131,18 @@ via `--codex-track` at install time.
 | Category | Skills | Purpose |
 |----------|--------|---------|
 | **Session** | `session-open`, `session-close` | Lifecycle: status banner, auto-save |
-| **Paper reading** | `paper-read` (standard + deep/Fey-R), `paper-compare`, `paper-index`, `paper-lit-search` | Reading, comparison, arXiv + Semantic Scholar search |
-| **Paper writing** | `writing-outline`, `writing-draft`, `writing-review`†, `writing-polish` | Outline → draft → peer-review → polish |
+| **Paper reading** | `paper-read` (standard / deep / compare / index modes), `paper-lit-search` | Reading, comparison, arXiv + Semantic Scholar search |
+| **Paper writing** | `writing` (outline / draft / polish modes), `writing-review`† | Outline → draft → peer-review → polish |
 | **Paper build** | `paper-compile`, `paper-figure`, `paper-illustrate`, `paper-art` | LaTeX build, data plots, architecture diagrams, pixel art |
-| **Theory** | `theory-formalize`, `theory-decompose`, `theory-search`, `theory-counterexample`, `theory-generalize` | Formalization & proof strategy |
-| **Proof** | `proof-write`, `proof-critique`, `proof-fix`, `proof-formalize`, `proof-verify` | First draft → review → repair → Lean/Coq → spot-check |
-| **Ideas** | `idea-discover`, `idea-verify`†, `idea-refine` | Gap analysis → novelty check → sharpened proposal |
-| **Experiment** | `experiment-plan`, `experiment-dse`, `experiment-run`, `experiment-monitor`, `experiment-analyze` | Design → hyperparameter sweep → dispatch → monitor → analyze |
+| **Theory** | `theory` (formalize / decompose / search / counterexample / generalize modes) | Formalization & proof strategy |
+| **Proof** | `proof` (write / critique / fix / formalize / verify modes) | First draft → review → repair → publication LaTeX → spot-check |
+| **Ideas** | `idea` (explore / discover / refine modes), `idea-verify`† | Directions → gap analysis → novelty check → sharpened proposal |
+| **Experiment** | `experiment-plan`, `experiment-dse`, `experiment-run`, `experiment-monitor` (thin, over `harness ext-status`), `experiment-analyze` | Contract → sweep → dispatch → monitor → evaluate |
 | **Coding** | `code-roadmap`, `code-branch`, `code-implement`†, `code-debug`, `code-review`†, `code-commit` | Plan → branch → implement → debug → review → commit |
-| **Planning** | `plan-suggest`, `plan-milestone`, `progress-capture`, `status-report`, `decision-analyze` | Project management |
-| **Checklist** | `checklist-create`, `checklist-verify`, `checklist-update`, `checklist-status` | Paper audit & claim tracking |
-| **Research** | `research-explore`, `design-converge` | Open-ended exploration |
-| **Memory** | `memory-write`, `memory-retrieve`, `memory-consolidate`, `memory-forget` | Persistent cross-session memory |
-| **Meta** | `evolve-suggest`, `evolve-apply`, `general-research` | TD-NL skill self-improvement + fallback |
+| **Planning** | `plan-suggest` (+milestone mode), `decision-analyze` (+converge mode) | Project management (status → `python -m harness status`; progress reports → `checklist`) |
+| **Checklist** | `checklist` (modes: create / update / verify / recount) | Paper audit & claim tracking |
+| **Memory** | `memory` (modes: write / retrieve / consolidate / forget) | Persistent cross-session memory |
+| **Meta** | `skill-feedback`, `evolve-suggest`, `evolve-apply` | TD-NL skill self-improvement |
 | **Integration** | `project-integrate` | Merge SER into an existing project |
 
 ## External Skills
@@ -170,14 +169,40 @@ session.close → G1 aggregation → per-skill value update → spec edit propos
 The optimization target is the skill specs themselves (`skills/{skill-name}/SKILL.md`).
 Version history in `skills/td-nl/history/` enables safe rollback.
 
+## Research Harness
+
+Experiments (currently the TTT skill-evolution experiment) run through one
+canonical, contract-gated path — see `REFACTOR_PLAN.md` for design and
+`RESEARCH_STATE.md` / `EXPERIMENTS.json` for live research state:
+
+```bash
+python -m harness setup                          # environment check
+python -m harness smoke-test                     # full deterministic test suite
+python -m harness run configs/ttt_smoke.yaml     # one experiment -> runs/<id>/
+python -m harness evaluate <run>                 # (re-)evaluate vs the contract
+python -m harness resume <run>                   # finish a failed/partial run
+python -m harness compare <run> <run> ...        # metric/verdict table
+python -m harness loop step                      # run the next planned experiment
+```
+
+Every run directory is self-contained (resolved config, contract + hash, seed
+and git metadata, logs, metrics, checkpoints, evaluation, failure info,
+summary). An experiment is complete only after its evaluation has run.
+
 ## Project Structure
 
 ```
-├── CLAUDE.md              # Behavioral protocol (intent router + data contracts)
+├── CLAUDE.md              # Research protocol (loop, state model, intent router)
+├── RESEARCH_STATE.md      # Scientific state: question, hypotheses, evidence
+├── EXPERIMENTS.json       # Experiment ledger (planned/running/complete + verdicts)
+├── harness/               # Minimal research harness (contract, rundir, cli, loop)
+├── configs/               # Experiment configs, each with a pre-registered contract
+├── runs/                  # Self-contained run records
+├── tests/                 # Harness + regression tests (baseline check)
 ├── config.template.yaml   # Copy to config.yaml and customize
 ├── README.md / LICENSE
 ├── skills/
-│   ├── {skill-name}/      # 57 SER skills, each with SKILL.md + YAML frontmatter
+│   ├── {skill-name}/      # 32 SER skills (consolidating; mode-based merges ongoing)
 │   ├── _shared/           # Shared infra read by related skills
 │   │   ├── checklist-engine.md
 │   │   ├── memory-tiers.md
@@ -192,7 +217,7 @@ Version history in `skills/td-nl/history/` enables safe rollback.
 │       ├── value-function.md
 │       ├── skill-values/   # Per-skill Q^L estimates
 │       └── history/        # Spec version archive for rollback
-├── scripts/               # Utility scripts (citation, notify, analyzer, install-skills)
+├── scripts/               # session_context.sh (SessionStart hook), citation, notify, install-skills
 ├── memory/                # Persistent three-tier memory
 │   ├── episodes/          # Recent observations (7-day retention)
 │   ├── topics/            # Consolidated knowledge (90-day)
@@ -202,7 +227,7 @@ Version history in `skills/td-nl/history/` enables safe rollback.
 ├── experiments/           # Experiment code + results
 ├── outputs/               # Deliverables (short/mid/long-term + paper/)
 ├── resources/             # Reference materials (papers/ + repos/)
-├── logs/digest/           # Session logs
+├── logs/                  # experiments/ (external GPU runs) + digest/ (optional narrative logs)
 └── docs/                  # Plans, reports
 ```
 
@@ -211,7 +236,7 @@ Version history in `skills/td-nl/history/` enables safe rollback.
 SER is driven by `CLAUDE.md` — a behavioral protocol that Claude Code reads automatically.
 It defines:
 
-- **Intent router**: 40 patterns that map your messages to SER skills
+- **Intent router**: lifecycle-stage-grouped patterns that map your messages to SER skills
 - **Session lifecycle**: auto-open/close with memory persistence
 - **Data contracts**: standardized formats for logs, paper notes, memory files
 - **Evolution loop**: G2/G1 feedback cycle for skill improvement
@@ -231,7 +256,7 @@ The root `CLAUDE.md` is the bootloader; subdirectory files are namespace guides.
 → paper-read generates structured notes
 
 "Is this derivation step correct? [paste]"
-→ proof-critique checks it
+→ proof (critique mode) checks it
 
 "That's it for today"
 → session-close saves summary + evolve-suggest updates skill values
@@ -241,7 +266,7 @@ The root `CLAUDE.md` is the bootloader; subdirectory files are namespace guides.
 
 ```
 "What are the open problems in agent memory?"
-→ idea-discover generates candidates
+→ idea (discover mode) generates candidates
 
 "Is the second idea novel?"
 → idea-verify checks against existing literature
@@ -254,10 +279,10 @@ The root `CLAUDE.md` is the bootloader; subdirectory files are namespace guides.
 
 ```
 "Time to start writing"
-→ writing-outline generates structure
+→ writing (outline mode) generates structure
 
 "Write the introduction"
-→ writing-draft produces a draft
+→ writing (draft mode) produces a draft
 
 "Review this version"
 → writing-review simulates peer review (3-way if --codex-track codex)

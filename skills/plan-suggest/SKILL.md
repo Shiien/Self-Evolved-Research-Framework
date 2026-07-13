@@ -1,35 +1,58 @@
 ---
 name: plan-suggest
-description: Read the checklist tree + milestones and produce a prioritized list of 3-5 next tasks with HIGH/MED/LOW rank and checklist references. Triggers on "what should I do next?", "what's the priority?", "give me a task list", or when the user seems unsure about next steps.
+description: The SELECT stage of the research loop. Reads RESEARCH_STATE.md (uncertainties + next recommended experiments) and EXPERIMENTS.json first, then the checklist tree for deliverable deadlines, and produces a prioritized list of 3-5 next actions — experiments ranked by uncertainty-resolved-per-cost, deliverables by milestone. Includes a MILESTONE mode (absorbed the former plan-milestone skill): days-to-deadline, phase progress, token budget, on-track/at-risk/behind. Triggers on "what should I do next?", "what's the priority?", "are we on track?", "when is the deadline?", "milestone status".
 ---
 
 # plan-suggest
 
-**Trigger**: User asks "what should I do next?", "what's the priority?", or seems unsure about next steps.
+**Trigger**: User asks "what should I do next?", "what's the priority?", or
+seems unsure about next steps.
 
 **Process**:
-1. Read: `Checklist.md` (L0 project root) for overall progress
-2. Read: relevant L1 checklists (`checklists/short-term.md`, `checklists/mid-term.md`) for `[ ]` (incomplete) items
-3. Read: `config.yaml` (milestones, timeline) for deadline context
-4. Prioritize incomplete items by:
-   - Deadline proximity (nearest milestone first)
-   - Dependency chains (unblock other items first)
-   - Blocking status (items others depend on)
-   - Cross-term priority: Short-term items rank above mid-term items of equal priority. Milestone proximity overrides term ordering — if a mid-term milestone is within 7 days, its items rank first.
-5. Generate 3-5 prioritized task suggestions with checklist references:
+1. Read `RESEARCH_STATE.md`: `§ Unresolved uncertainties` (the menu of
+   questions worth answering) and `§ Next recommended experiments` (already-
+   ordered candidates).
+2. Read `EXPERIMENTS.json`: planned entries are ready-to-run (contract
+   exists); running entries may need monitoring; failed entries may need
+   diagnosis/resume before anything new starts.
+3. Read `Checklist.md` + relevant L1 checklists and `config.yaml` for
+   deliverable deadlines and milestones.
+4. Prioritize:
+   - a broken baseline or failed/unresumed run outranks everything (the loop
+     rule: verify the baseline before new experiments);
+   - experiments: highest uncertainty-resolved-per-cost first — prefer the
+     cheapest run that can falsify something (one conceptual factor);
+   - deliverables: deadline proximity, then dependency chains;
+   - milestone within 7 days overrides ordering.
+5. Output 3-5 suggestions, each traceable to a state file:
    ```
-   1. [HIGH] {task} — {reason, milestone impact} (→ checklists/{path})
-   2. [MED]  {task} — {reason} (→ checklists/{path})
-   3. [LOW]  {task} — {nice-to-have}
+   1. [HIGH] {action} — {uncertainty it resolves / milestone impact} (→ exp-NNN | checklists/{path})
+   2. [MED]  {action} — {reason}
+   3. [LOW]  {action} — {nice-to-have}
    ```
-6. No multi-question wizard — direct output
+6. No multi-question wizard — direct output. If an experiment is suggested
+   that has no contract yet, say so and route to `experiment-plan`.
+
+## Mode: MILESTONE — "are we on track?", "when is the deadline?"
+
+(absorbed from `plan-milestone`) Read `config.yaml` milestones +
+`methodology/approach.md` phases; compute days to next milestone, % of phase
+tasks completed, token budget remaining; output:
+```
+Phase {X}: {name} | {start} → {end} ({days_remaining}d remaining)
+Progress: ~{pct}% | Token budget: {used}/{allocated}
+Risk: {on track / at risk / behind}
+```
+If behind → run the main SELECT process above with urgency weighting.
 
 **Auto-strategy selection**:
-- Near milestone → emphasize milestone-critical tasks from checklist
-- Long gap since last session → suggest review/catch-up first
-- Blocked on external → suggest parallel tasks from checklist
+- Near milestone → milestone-critical deliverables first
+- Long gap since last session → verify baseline (`python -m harness
+  smoke-test`) + review `RESEARCH_STATE.md` first
+- Blocked on external → parallel tasks from the ledger/checklists
 
-**Inputs**: Checklist.md, L1 checklists, config.yaml
-**Outputs**: Prioritized task list with checklist references (inline)
+**Inputs**: RESEARCH_STATE.md, EXPERIMENTS.json, Checklist.md, config.yaml
+**Outputs**: prioritized action list (inline)
 **Token**: ~2-3K
-**Composition**: User picks a theory task → triggers appropriate theory/proof skill
+**Composition**: experiment picked → `experiment-plan`/`experiment-run`;
+theory task → theory/proof skills; writing task → writing skills.

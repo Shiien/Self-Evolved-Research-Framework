@@ -1,46 +1,41 @@
 ---
 name: session-close
-description: Wraps up a conversation. Auto-summarizes the session, asks the user to save a digest log, writes logs/digest/YYYY-MM-DD.yaml, updates SUMMARY.md, then chains into memory-write, memory-consolidate, and checklist-update. Optionally invokes evolve-suggest for skill audit/proposal when the user asks for it. Triggers on end-of-conversation signals (user says goodbye/done, or a long session with substantial work completed).
+description: Evidence-first conversation wrap-up. Writes what the session established into RESEARCH_STATE.md (evidence with run ids and strength stamps, hypothesis changes, uncertainties, next experiments), resolves EXPERIMENTS.json entries, chains the memory skill (write mode) for durable non-scientific facts. Digest logs and skill audits are optional on user request. Triggers on end-of-conversation signals (user says goodbye/done, or a long session with substantial work completed).
 ---
 
 # session-close
 
-**Trigger**: Conversation is ending (detected via: user says goodbye/done, or long session with substantial work completed).
+**Trigger**: Conversation is ending (user says goodbye/done, or long session
+with substantial work completed).
+
+**Principle**: never rely on conversation history as memory. Anything worth
+keeping must land in the file that owns it (see `CLAUDE.md § State`).
 
 **Process**:
-1. Auto-summarize the current session from conversation history:
-   - What was discussed/accomplished (1-3 bullet points)
-   - Key decisions made
-   - Files created/modified
-   - Token estimate for session
-2. Present summary and ask: "Save session log? [Y/edit]"
-3. On confirmation, write to `logs/digest/YYYY-MM-DD.yaml`:
-   ```yaml
-   date: "YYYY-MM-DD"
-   type: "session"
-   auto_strategy: "conversation-summary"
-   summary: "{auto-generated}"
-   accomplishments:
-     - "{item}"
-   decisions: []
-   files_changed: []
-   token_estimate: N
-   milestone_phase: "{current phase}"
-   ```
-4. Update `logs/digest/SUMMARY.md` index table with new entry
-5. Skill evolution is **not** run automatically at session-close. Per-firing
-   `Q^L` updates already happened online via `skill-feedback` whenever a real
-   reward signal was present. Offer once: "Run skill audit? [y/N]" — if yes,
-   chain to `evolve-suggest`; otherwise terminate. Defaulting off keeps
-   session-close cheap and avoids the dead-batch failure mode of the v3
-   pipeline (running aggregation when there is nothing to aggregate).
+1. **RESEARCH_STATE.md** — for each thing this session established, append or
+   amend the owning section:
+   - `## Established evidence`: one line per resolved experiment/finding —
+     `[date] {exp/run id}: SUPPORTS/CONTRADICTS — {question} | {criterion
+     detail} | strength: {stamp}`. Record contradicting evidence with the
+     same care as supporting evidence.
+   - `## Active hypotheses`: add/retire/annotate (cite the evidence line).
+   - `## Unresolved uncertainties`: new unknowns, crashed runs (crash ≠
+     negative evidence), noise caveats.
+   - `## Next recommended experiments`: keep it a short, ordered list.
+2. **EXPERIMENTS.json** — set status/run/verdict for anything resolved;
+   enqueue experiments the session designed (each needs a config with a
+   contract before it can run).
+3. **Checklists** — mark deliverable items completed this session
+   (`checklist` update mode; recount caches while there), if any.
+4. **memory (write mode)** — only durable non-scientific facts (user
+   preferences, environment quirks, procedures). Scientific findings do NOT
+   go to memory.
+5. Ask once: "Save narrative digest log? [y/N]" — only on yes, write
+   `logs/digest/YYYY-MM-DD.yaml` (legacy format). Default no.
+6. Ask once: "Run skill audit? [y/N]" — only on yes, chain `evolve-suggest`.
 
-**Inputs**: Conversation history, config.yaml
-**Outputs**: `logs/digest/YYYY-MM-DD.yaml`, updated SUMMARY.md
-**Token**: ~2K (plus ~2-3K only if the user opts into `evolve-suggest`)
-**Composition**:
-- Chain to `memory-write` (capture unrecorded insights/decisions)
-- Chain to `memory-consolidate` (check if consolidation needed)
-- Chain to `checklist-update` — mark completed items from this session
-- Optional: chain to `evolve-suggest` only if the user accepted the audit prompt
-- Terminal after all chains complete
+**Inputs**: session outcomes, RESEARCH_STATE.md, EXPERIMENTS.json
+**Outputs**: updated state files (+ optional digest)
+**Token**: ~1-3K
+**Composition**: chains `checklist` (update mode), `memory` (write mode);
+optional `evolve-suggest`; terminal.

@@ -1,6 +1,6 @@
 ---
 name: experiment-run
-description: Launch a training / experiment run — pre-flight GPU check, metadata generation, ssh dispatch to the best available machine, and write logs/experiments/{exp_id}.yaml. Triggers on "run an experiment", "launch training", "test this on GPU", or when the user provides a training script/command to execute.
+description: Launch a training / experiment run — contract gate (refuses to launch without a pre-registered experiment contract), pre-flight GPU check, metadata generation, ssh dispatch to the best available machine, and write logs/experiments/{exp_id}.yaml with the contract embedded. For experiments inside the SER repo, delegates to `python -m harness run`. Triggers on "run an experiment", "launch training", "test this on GPU", or when the user provides a training script/command to execute.
 ---
 
 # experiment-run
@@ -8,6 +8,16 @@ description: Launch a training / experiment run — pre-flight GPU check, metada
 **Trigger**: User asks to "run an experiment", "launch training", "test this on GPU", or provides a training script to execute.
 
 **Process**:
+0. **Contract gate (hard requirement)**: locate this run's experiment
+   contract — in `experiments/{exp_name}/plan.md § Contracts`, in the ledger
+   entry's config, or provided inline by the user. If none exists, DO NOT
+   LAUNCH: draft the 7-field contract (hypothesis, change, controls,
+   success_metric, failure_condition, required_diagnostics, budget) with the
+   user (≤10 lines, or chain to `experiment-plan` for anything non-trivial)
+   and only then proceed. The contract is copied verbatim into the run record
+   in step 2 — evaluation criteria are frozen at launch time.
+   For experiments inside the SER repo itself, skip ssh dispatch and use
+   `python -m harness run <config>` (the config file carries the contract).
 1. **Pre-flight checks**:
    - Run `bash ~/.claude/skills/monitor-gpu-utilization/scripts/gpu_status.sh` to get GPU availability
    - Identify best GPU: prefer remote machines, >20 GB free, <10% utilization
@@ -65,7 +75,19 @@ last_checked: null
 latest_metrics: {}
 final_metrics: {}
 error_summary: null
+contract:                            # REQUIRED — frozen at launch (step 0)
+  hypothesis: "..."
+  change: "..."
+  controls: "..."
+  success_metric: "..."
+  failure_condition: "..."
+  required_diagnostics: []
+  budget: "..."
 ```
+
+`status: completed` means the process finished — it does NOT mean the
+experiment is complete. An experiment is complete only after
+`experiment-analyze` has judged it against this contract.
 
 ## Autonomy Integration
 

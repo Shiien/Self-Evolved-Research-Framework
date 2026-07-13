@@ -1,0 +1,30 @@
+{
+  "backend": "shim",
+  "engine": "none",
+  "sessions": [
+    {
+      "session": "ttt-20260713-131118-ttt-smoke-g02",
+      "v_l_old": 5.0,
+      "v_l_new": 3.012,
+      "skills": {
+        "play-tic-tac-toe": {
+          "net_delta": -1,
+          "td_error": -1.802,
+          "strength": "hard",
+          "V": 3.913,
+          "V_next": 3.457,
+          "confidence": "medium"
+        }
+      },
+      "proposals": [
+        {
+          "skill": "play-tic-tac-toe",
+          "old_value": 3.913,
+          "new_value": 3.012,
+          "td_error": -1.802,
+          "strength": "hard"
+        }
+      ]
+    }
+  ]
+}

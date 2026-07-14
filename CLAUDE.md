@@ -41,6 +41,7 @@ Never rely on conversation history as memory. Each fact has exactly one home:
 | `logs/experiments/*.yaml` | External GPU runs (other repos/clusters) — must embed the contract | `experiment-run`, `experiment-monitor` |
 | `memory/` | Durable **non-scientific** context: user preferences, procedures, environment facts (see `memory/CLAUDE.md`) | `memory` skill (write/consolidate modes) |
 | `Checklist.md` + `checklists/` | Deliverable tracking (paper sections, audits, engineering tasks) — NOT experiment evidence | `checklist` skill (create/update/verify/recount modes) |
+| `IDEA_BACKLOG.md` | Out-of-scope ideas parked with a revisit condition — NOT evidence, NOT a task | `idea` skill (explore/discover modes), `session-close` |
 | `logs/digest/` | Optional narrative session log — no longer required | `session-close` only if the user asks |
 
 If a fact could live in two places, the leftmost/uppermost row wins. Evidence
@@ -119,6 +120,50 @@ against criteria written before seeing the result. Never:
 - claim support from one noisy run — single runs carry `weak (n=1)` stamps;
 - add system complexity without an ablation showing value.
 
+## Hypothesis Closure & Scope Discipline
+
+Every active hypothesis in `RESEARCH_STATE.md § Active hypotheses` eventually
+closes with exactly one decision — distinct from a single run's mechanical
+contract verdict (`success`/`failure`/`inconclusive`, computed by
+`evaluate_contract()`), which is per-run evidence feeding this cumulative,
+judgment-level call:
+
+| Decision | Meaning | Who calls it |
+|---|---|---|
+| `supported` | evidence accumulated across run(s) backs the hypothesis at the pre-registered bar | `experiment-analyze` / `session-close`, from `success` verdicts |
+| `falsified` | evidence contradicts the hypothesis at the pre-registered bar | `experiment-analyze` / `session-close`, from `failure` verdicts |
+| `inconclusive` | evidence exists but doesn't clear the bar either way | stays open, bounded (see anti-pattern rule below) |
+| `terminated` | abandoned before reaching a bar — budget exhausted, scope cut, or superseded by a narrower/different hypothesis | any skill, with a one-line reason |
+
+**Anti-pattern rule**: two consecutive `inconclusive` verdicts against the
+same hypothesis force a decision at the next opportunity — either narrow the
+hypothesis (sharper claim, tighter contract) or mark it `terminated`. Do not
+keep re-running variations of the same untightened contract hoping for
+signal; that is drift, not evidence.
+
+A closed hypothesis stays in `§ Active hypotheses`, annotated `[decision,
+date, evidence ref]`, rather than being deleted — the history of what was
+tried and ruled out is itself evidence.
+
+### Claim stability levels
+
+Borrowed vocabulary (no new enforcement) for keeping different time-scales of
+claim from bleeding into each other — useful when scoping a session or a
+`plan-suggest` pass:
+
+| Level | Scope | Lives in |
+|---|---|---|
+| 0 — agenda | long-term research direction (~months) | implicit; stated in README/paper framing, not file-tracked |
+| 1 — question | the current falsifiable research question (~weeks) | `RESEARCH_STATE.md § Current research question` |
+| 2 — hypothesis | one bounded, closeable claim (~days) | `RESEARCH_STATE.md § Active hypotheses` entry |
+| 3 — experiment | one contract, one run | `EXPERIMENTS.json` entry + `runs/<id>/contract.yaml` |
+
+Only Level 3 is mechanically gated (no run without a contract). Levels 0-2
+are discipline, not code — this project runs multiple parallel experiments
+across a GPU cluster, so nothing here enforces WIP=1. If work doesn't map to
+the current Level 1 question, it's probably an idea for `IDEA_BACKLOG.md`,
+not a silent scope change.
+
 ## Research Loop (optional layer)
 
 ```
@@ -173,6 +218,7 @@ rows first. Each skill lives in `skills/{name}/SKILL.md` (auto-loaded on fire).
 | Pattern | Skill |
 |---|---|
 | Explore directions / brainstorm / refine an idea | `idea` (explore / discover / refine modes) → `idea-verify` for novelty |
+| Park an off-scope idea for later ("not now", "add to backlog") | `idea` (explore/discover mode) → `IDEA_BACKLOG.md` |
 | Design experiments / "what should we run" (emits contracts) | `experiment-plan` |
 | Hyperparameter sweep / DSE design | `experiment-dse` |
 | Theorem/conjecture work (formalize, decompose, stuck, stress-test, generalize) | `theory` (formalize / decompose / search / counterexample / generalize modes) |
@@ -246,10 +292,19 @@ deprecated v3 batch pipeline is documented in
 ## Data Contracts
 
 ### `RESEARCH_STATE.md` — exactly five sections
-`## Current research question` · `## Active hypotheses` ·
-`## Established evidence` (each line: date, exp/run id, SUPPORTS/CONTRADICTS,
-criterion detail, strength stamp) · `## Unresolved uncertainties` ·
-`## Next recommended experiments`
+`## Current research question` · `## Active hypotheses` (closed entries
+annotated `[decision: supported|falsified|terminated, date, evidence ref]` —
+see `§ Hypothesis Closure & Scope Discipline`) · `## Established evidence`
+(each line: date, exp/run id, SUPPORTS/CONTRADICTS, criterion detail,
+strength stamp) · `## Unresolved uncertainties` · `## Next recommended
+experiments`
+
+### `IDEA_BACKLOG.md`
+Flat list, newest first: `- [ ] {idea} — relates to: {future question it
+might answer} — why not now: {reason} — revisit when: {condition}`. Ideas
+that surface mid-session but don't fit the current Level 1 question go here
+instead of derailing it. Check off (`- [x]`) and link the resulting
+idea/experiment when picked up — never delete.
 
 ### `EXPERIMENTS.json` entry
 ```json
@@ -279,6 +334,7 @@ artifact `- [x] {desc} | artifact: outputs/{path}`. Stages: `[ ]`→`[x]`→`[v]
 ├── CLAUDE.md              # This protocol
 ├── RESEARCH_STATE.md      # Scientific state (the loop's memory)
 ├── EXPERIMENTS.json       # Experiment ledger
+├── IDEA_BACKLOG.md        # Out-of-scope ideas parked with revisit conditions
 ├── REFACTOR_PLAN.md       # Harness design + migration record
 ├── harness/               # Minimal research harness (contract, rundir, cli, loop)
 ├── configs/               # Experiment configs (each with a contract block)

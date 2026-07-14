@@ -242,3 +242,44 @@ idea-verify, plan-suggest, decision-analyze, experiment-plan, experiment-dse,
 experiment-run, experiment-monitor, experiment-analyze, code, code-implement,
 code-review, checklist, memory, skill-feedback, evolve-suggest, evolve-apply,
 project-integrate.
+
+## 8. Phase 4 — merge `research-closure-harness` concepts (2026-07-14)
+
+An external candidate package (`ideas/research-closure-harness/`, a
+standalone claim-to-evidence-to-decision governance layer with its own CLI —
+`tools/research_closure.py` — and JSON state store, `.research/state.json`)
+was evaluated for merging in. Its closure engine (contract → run → evaluate
+→ evidence) duplicates what `harness/` already does more rigorously
+(hash-locked contracts, deterministic verdicts, dev/confirm metric split);
+adopting its parallel JSON state store would have violated `CLAUDE.md §
+State`'s single-source-of-truth rule. Its global installer (patches
+`~/.claude/CLAUDE.md` / `settings.json` machine-wide, affecting every other
+project) was out of scope entirely and was not run.
+
+**Extracted (conceptual only, no new mechanical enforcement):**
+- A four-outcome hypothesis-closure decision taxonomy
+  (`supported`/`falsified`/`inconclusive`/`terminated`). The `terminated`
+  case (abandon before a bar is reached — budget exhausted, scope cut,
+  superseded) didn't exist in v6; added as a judgment-level annotation on
+  `RESEARCH_STATE.md § Active hypotheses`, distinct from the harness's
+  per-run mechanical verdict (`success`/`failure`/`inconclusive`).
+- Anti-pattern rule: two consecutive `inconclusive` verdicts on the same
+  hypothesis force a narrow-or-terminate decision at the next opportunity,
+  instead of silently rerunning variations of an untightened contract
+  (`CLAUDE.md § Hypothesis Closure & Scope Discipline`). Wired into
+  `experiment-analyze` and `plan-suggest`.
+- Claim-stability-level vocabulary (agenda / question / hypothesis /
+  experiment) mapped onto existing files — documentation only, no new file.
+  This repo runs multiple parallel experiments across a 5-machine GPU
+  cluster, so strict WIP=1 nesting was explicitly rejected (user decision) —
+  only Level 3 (one contract, one run) stays mechanically gated.
+- `IDEA_BACKLOG.md`: a genuinely new, previously-missing capability — a flat
+  file for parking off-scope ideas with a revisit condition, so scope drift
+  stays visible instead of silent. Wired into `idea` (explore/discover
+  modes), `plan-suggest`, and `session-close`.
+
+**Not adopted:** the parallel `.research/state.json` + CLI, the global
+installer, the keyword-triggered `PreToolUse` blocking hook, templates
+(`sprint_plan.md`, `weekly_review.md`, etc. — SER's existing
+`RESEARCH_STATE.md`/`Checklist.md`/`checklist` skill already cover that
+ground), and strict WIP=1 enforcement at the experiment level.

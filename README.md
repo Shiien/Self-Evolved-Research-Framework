@@ -195,6 +195,7 @@ summary). An experiment is complete only after its evaluation has run.
 ├── CLAUDE.md              # Research protocol (loop, state model, intent router)
 ├── RESEARCH_STATE.md      # Scientific state: question, hypotheses, evidence
 ├── EXPERIMENTS.json       # Experiment ledger (planned/running/complete + verdicts)
+├── IDEA_BACKLOG.md        # Out-of-scope ideas parked with revisit conditions
 ├── harness/               # Minimal research harness (contract, rundir, cli, loop)
 ├── configs/               # Experiment configs, each with a pre-registered contract
 ├── runs/                  # Self-contained run records

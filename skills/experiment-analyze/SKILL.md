@@ -39,6 +39,13 @@ Judgment happens against criteria written BEFORE the result existed.
      inconclusive outcomes go to `§ Unresolved uncertainties` with what would
      sharpen them.
    - `EXPERIMENTS.json`: set `status`, `run`, `verdict` on the ledger entry.
+   - If this is the hypothesis's **second consecutive `inconclusive`**
+     verdict, don't queue a third unchanged rerun: propose a narrower
+     hypothesis (tighter contract) or mark it `terminated`. When evidence
+     clears the bar either way, annotate `§ Active hypotheses` with
+     `[decision: supported|falsified, date, evidence ref]` (`CLAUDE.md §
+     Hypothesis Closure & Scope Discipline`) — don't leave a decided
+     hypothesis looking still-open.
 6. **Propose the next experiment**: the cheapest run that resolves the
    sharpest remaining uncertainty, one conceptual factor changed. Append to
    `§ Next recommended experiments`.

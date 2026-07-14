@@ -9,7 +9,7 @@ when a skill's description matches the current conversation intent.
 
 ```
 skills/
-  {skill-name}/SKILL.md      # 32 SER skills (Phase 3 consolidation in progress — see REFACTOR_PLAN.md §7)
+  {skill-name}/SKILL.md      # 27 SER skills (consolidated from 57 — see REFACTOR_PLAN.md §7)
   _shared/*.md               # Cross-cutting reference docs (not skills themselves)
   external/{name}/SKILL.md   # External skills (git submodules)
   td-nl/                     # Skill evolution infrastructure
@@ -20,7 +20,7 @@ skills/
 need them instruct Claude to Read them on demand. `_shared/` has no `SKILL.md`
 so it's ignored by `scripts/install-skills.sh`.
 
-## Skill index (32 SER + 1 external)
+## Skill index (27 SER + 1 external)
 
 ### Session lifecycle
 - `session-open` (formats the SessionStart hook's deterministic context — `scripts/session_context.sh`)
@@ -33,10 +33,7 @@ so it's ignored by `scripts/install-skills.sh`.
 - Chain: `paper-lit-search → paper-read`
 
 ### Paper figures & build
-- `paper-illustrate` — structural diagrams (architecture, pipeline, flow) via TikZ or SVG
-- `paper-figure` — data-driven plots (line, bar, scatter, heatmap, table) from experiment results; script preserved under `paper/figures/scripts/`
-- `paper-art` — decorative / identity visuals (pixel art, project mascot, README hero); saved to `outputs/visuals/`
-- `paper-compile` — full LaTeX build pipeline (pdflatex×3 + bibtex/biber) with pre-compile integrity checks
+- `paper-assets` — one mode-based skill: ILLUSTRATE / FIGURE / ART / COMPILE (absorbed `paper-illustrate/figure/art/compile`, 2026-07-13); the deterministic LaTeX build lives in `scripts/compile_paper.sh`
 
 ### Theory & proofs
 - `theory` — modes: FORMALIZE / DECOMPOSE / SEARCH / COUNTEREXAMPLE / GENERALIZE (absorbed the 5 `theory-*` skills, 2026-07-13)
@@ -56,7 +53,7 @@ so it's ignored by `scripts/install-skills.sh`.
 ### Experiments
 - `experiment-plan` (design phase: claims / variables / baselines / ablations / **pre-registered contracts** → ledger)
 - `experiment-dse` (hyperparameter sweep over a plan)
-- `experiment-run` (contract-gated launch; SER-repo experiments delegate to `python -m harness run`)
+- `experiment-run` — judgment only (contract gate, GPU choice); dispatch mechanics migrated to `python -m harness ext-launch` (2026-07-13); SER-repo experiments use `python -m harness run`
 - `experiment-monitor` — thin wrapper over `python -m harness ext-status` (deterministic polling migrated to harness, 2026-07-13)
 - `experiment-analyze` (EVALUATE stage: verdict vs the pre-registered contract → RESEARCH_STATE.md evidence)
 - Chain: `experiment-plan → experiment-dse → experiment-run → experiment-monitor → experiment-analyze`
@@ -76,7 +73,8 @@ so it's ignored by `scripts/install-skills.sh`.
 - Shared vocabulary: `_shared/memory-tiers.md`
 
 ### Code family
-- `code-branch`, `code-roadmap`, `code-implement`, `code-review`, `code-debug`, `code-commit`
+- `code` — one mode-based skill: BRANCH / ROADMAP / DEBUG / COMMIT (absorbed `code-branch/roadmap/debug/commit`, 2026-07-13)
+- `code-implement`, `code-review` — separate skills (ship codex-track variants)
 - Shared vocabulary: `_shared/git-conventions.md` (all tracks) and `_shared/codex-contract.md` (codex track only)
 
 ### Codex track (cross-cutting)

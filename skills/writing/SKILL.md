@@ -49,5 +49,5 @@ explained. Standalone — typically doesn't chain.
 `references.bib`; polish inline
 **Token**: OUTLINE 2-5K · DRAFT 5-15K · POLISH 2-5K
 **Composition**: matrix `need` rows → `experiment-plan` or `proof`;
-completed sections → `paper-compile`; drafted claims tracked as deliverables
+completed sections → `paper-assets` (compile mode); drafted claims tracked as deliverables
 → `checklist` (update mode).

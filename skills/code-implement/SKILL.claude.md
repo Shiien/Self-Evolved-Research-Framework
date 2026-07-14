@@ -1,6 +1,6 @@
 ---
 name: code-implement
-description: Write or modify code via strict Red-Green-Refactor TDD. For small tasks, performs a single TDD cycle directly. For medium/large tasks, reads `docs/implement_roadmap/YYYY-MM-DD-{name}.md` and executes each step with its own TDD cycle, updating the roadmap Status `[x]` after each step passes. Triggers on "implement X", "add feature Y", "change behavior of Z", or any request to write/modify code. Works on the current branch/worktree prepared by `code-branch`.
+description: Write or modify code via strict Red-Green-Refactor TDD. For small tasks, performs a single TDD cycle directly. For medium/large tasks, reads `docs/implement_roadmap/YYYY-MM-DD-{name}.md` and executes each step with its own TDD cycle, updating the roadmap Status `[x]` after each step passes. Triggers on "implement X", "add feature Y", "change behavior of Z", or any request to write/modify code. Works on the current branch/worktree prepared by `code` (branch mode).
 ---
 
 # code-implement (Track A — Claude native)
@@ -42,7 +42,7 @@ Estimate the scope:
 Default to **Small**. When uncertain, ask the user:
 > "This looks like it could be [small / medium]. Should I implement it directly, or write a roadmap first?"
 
-If Medium/Large and no roadmap exists yet, invoke `code-roadmap` first, then return here.
+If Medium/Large and no roadmap exists yet, invoke `code` (roadmap mode) first, then return here.
 
 ---
 
@@ -112,5 +112,5 @@ After all steps pass:
 **Token**: ~3-15K (small) / ~8-30K (roadmap-driven, step-dependent)
 **Composition**:
 - Completes → `code-review`
-- Test fails mid-way and cause unclear → `code-debug`
-- Small task had no roadmap → skip directly to `code-review` → `code-commit`
+- Test fails mid-way and cause unclear → `code` (debug mode)
+- Small task had no roadmap → skip directly to `code-review` → `code` (commit mode)

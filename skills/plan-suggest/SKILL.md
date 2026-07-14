@@ -10,16 +10,23 @@ seems unsure about next steps.
 
 **Process**:
 1. Read `RESEARCH_STATE.md`: `§ Unresolved uncertainties` (the menu of
-   questions worth answering) and `§ Next recommended experiments` (already-
+   questions worth answering), `§ Active hypotheses` (any stuck at two
+   consecutive `inconclusive` verdicts need a narrow/terminate decision
+   before anything else), and `§ Next recommended experiments` (already-
    ordered candidates).
 2. Read `EXPERIMENTS.json`: planned entries are ready-to-run (contract
    exists); running entries may need monitoring; failed entries may need
    diagnosis/resume before anything new starts.
 3. Read `Checklist.md` + relevant L1 checklists and `config.yaml` for
-   deliverable deadlines and milestones.
+   deliverable deadlines and milestones. Check `IDEA_BACKLOG.md` for any
+   parked idea whose revisit condition is now met.
 4. Prioritize:
    - a broken baseline or failed/unresumed run outranks everything (the loop
      rule: verify the baseline before new experiments);
+   - a hypothesis stuck at two consecutive `inconclusive` verdicts outranks
+     fresh exploration — it needs a narrow/terminate decision (`CLAUDE.md §
+     Hypothesis Closure & Scope Discipline`) before new work starts under
+     the same question;
    - experiments: highest uncertainty-resolved-per-cost first — prefer the
      cheapest run that can falsify something (one conceptual factor);
    - deliverables: deadline proximity, then dependency chains;
@@ -51,7 +58,7 @@ If behind → run the main SELECT process above with urgency weighting.
   smoke-test`) + review `RESEARCH_STATE.md` first
 - Blocked on external → parallel tasks from the ledger/checklists
 
-**Inputs**: RESEARCH_STATE.md, EXPERIMENTS.json, Checklist.md, config.yaml
+**Inputs**: RESEARCH_STATE.md, EXPERIMENTS.json, Checklist.md, IDEA_BACKLOG.md, config.yaml
 **Outputs**: prioritized action list (inline)
 **Token**: ~2-3K
 **Composition**: experiment picked → `experiment-plan`/`experiment-run`;

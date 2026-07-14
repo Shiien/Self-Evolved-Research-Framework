@@ -106,7 +106,7 @@ Save to `docs/code_reviews/YYYY-MM-DD-{roadmap-name}.md`:
 
 ## Step 4 — Deliver the verdict
 
-- **PASS** → suggest `code-commit`.
+- **PASS** → suggest `code` (commit mode).
 - **FAIL** → surface the report to the user. Do NOT auto-loop back to `code-implement` (SER has no automatic fix cycle). User decides next action: manual fix, re-run `code-implement`, redesign roadmap, or commit with known issues.
 
 ---
@@ -125,12 +125,12 @@ Track B adds a second independent reviewer (`/codex:review`) whose role is **cod
 [code-review / claude] Review complete — {PASS | FAIL}
   Mode: {quick | full}
   Report: {docs/code_reviews/... | console}
-  Next: code-commit (if PASS) or user decision (if FAIL)
+  Next: the code skill's commit mode (if PASS) or user decision (if FAIL)
 ```
 
 **Inputs**: `git diff {base_sha}` + `git status` + roadmap file (if any) + test command output
 **Outputs**: `docs/code_reviews/YYYY-MM-DD-{name}.md` (full mode) or console (quick mode)
 **Token**: ~3-8K
 **Composition**:
-- PASS → `code-commit`
+- PASS → `code` (commit mode)
 - FAIL → surface to user, no automatic chaining

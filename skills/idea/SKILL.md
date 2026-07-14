@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Ideation in one mode-based skill — EXPLORE (open-ended: 3-5 research directions with pros/cons/effort, ranked), DISCOVER (gap analysis over papers + methodology → 8-12 scored ideas saved to methodology/ideas/), REFINE (rough idea → committable proposal with problem statement, differentiation table, falsifier, and minimal validation experiment). Absorbs the former research-explore / idea-discover / idea-refine skills — those names now refer to modes here. Novelty checking stays a separate skill (`idea-verify`, codex-track variants). Triggers on "brainstorm ideas", "what are the possible directions?", "find research gaps", "refine this idea", "make this concrete", "细化想法".
+description: Ideation in one mode-based skill — EXPLORE (open-ended: 3-5 research directions with pros/cons/effort, ranked), DISCOVER (gap analysis over papers + methodology → 8-12 scored ideas saved to methodology/ideas/), REFINE (rough idea → committable proposal with problem statement, differentiation table, falsifier, and minimal validation experiment). Absorbs the former research-explore / idea-discover / idea-refine skills — those names now refer to modes here. Novelty checking stays a separate skill (`idea-verify`, codex-track variants). Triggers on "brainstorm ideas", "what are the possible directions?", "find research gaps", "refine this idea", "make this concrete", "细化想法", or "park this idea" / "add to backlog" / "not now" for off-scope ideas.
 ---
 
 # idea
@@ -62,9 +62,19 @@ Chain: EXPLORE (wide) → DISCOVER (scored) → `idea-verify` → REFINE (sharp)
 6. 3-line summary; unresolved Open Questions are blockers — do not
    auto-chain into `experiment-plan` with ambiguous success criteria.
 
+## Scope discipline: parking off-scope ideas
+
+A direction from EXPLORE or a candidate from DISCOVER that doesn't fit the
+current `RESEARCH_STATE.md § Current research question` (Level 1) is not
+automatically pursued — offer to append it to `IDEA_BACKLOG.md` instead:
+`- [ ] {idea} — relates to: {future question} — why not now: {reason} —
+revisit when: {condition}`. This keeps scope drift visible instead of silent
+(`CLAUDE.md § Hypothesis Closure & Scope Discipline`).
+
 **Inputs**: project context, paper notes, discovery entries, verify reports
 **Outputs**: inline (EXPLORE) · `methodology/ideas/YYYY-MM-DD-discovery.md`
-(DISCOVER) · `methodology/ideas/{slug}.md` (REFINE)
+(DISCOVER) · `methodology/ideas/{slug}.md` (REFINE) · `IDEA_BACKLOG.md`
+(off-scope ideas parked)
 **Token**: EXPLORE 3-5K · DISCOVER 4-8K · REFINE 3-8K
 **Composition**: REFINE with no open questions → `experiment-plan`; needs a
 theoretical tool → `theory` (search/decompose modes); choosing among refined

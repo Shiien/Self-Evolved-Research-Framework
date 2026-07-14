@@ -1,6 +1,6 @@
 ---
 name: session-close
-description: Evidence-first conversation wrap-up. Writes what the session established into RESEARCH_STATE.md (evidence with run ids and strength stamps, hypothesis changes, uncertainties, next experiments), resolves EXPERIMENTS.json entries, chains the memory skill (write mode) for durable non-scientific facts. Digest logs and skill audits are optional on user request. Triggers on end-of-conversation signals (user says goodbye/done, or a long session with substantial work completed).
+description: Evidence-first conversation wrap-up. Writes what the session established into RESEARCH_STATE.md (evidence with run ids and strength stamps, hypothesis changes incl. closure decisions, uncertainties, next experiments), resolves EXPERIMENTS.json entries, parks off-scope ideas in IDEA_BACKLOG.md, chains the memory skill (write mode) for durable non-scientific facts. Digest logs and skill audits are optional on user request. Triggers on end-of-conversation signals (user says goodbye/done, or a long session with substantial work completed).
 ---
 
 # session-close
@@ -19,6 +19,10 @@ keeping must land in the file that owns it (see `CLAUDE.md § State`).
      detail} | strength: {stamp}`. Record contradicting evidence with the
      same care as supporting evidence.
    - `## Active hypotheses`: add/retire/annotate (cite the evidence line).
+     A hypothesis that reached a decision this session gets `[decision:
+     supported|falsified|terminated, date, evidence ref]` (`CLAUDE.md §
+     Hypothesis Closure & Scope Discipline`) — don't leave it looking
+     still-open.
    - `## Unresolved uncertainties`: new unknowns, crashed runs (crash ≠
      negative evidence), noise caveats.
    - `## Next recommended experiments`: keep it a short, ordered list.
@@ -27,12 +31,15 @@ keeping must land in the file that owns it (see `CLAUDE.md § State`).
    contract before it can run).
 3. **Checklists** — mark deliverable items completed this session
    (`checklist` update mode; recount caches while there), if any.
-4. **memory (write mode)** — only durable non-scientific facts (user
+4. **IDEA_BACKLOG.md** — append any idea that surfaced but was deliberately
+   not pursued this session, with a revisit condition. Don't let scope drift
+   go unrecorded.
+5. **memory (write mode)** — only durable non-scientific facts (user
    preferences, environment quirks, procedures). Scientific findings do NOT
    go to memory.
-5. Ask once: "Save narrative digest log? [y/N]" — only on yes, write
+6. Ask once: "Save narrative digest log? [y/N]" — only on yes, write
    `logs/digest/YYYY-MM-DD.yaml` (legacy format). Default no.
-6. Ask once: "Run skill audit? [y/N]" — only on yes, chain `evolve-suggest`.
+7. Ask once: "Run skill audit? [y/N]" — only on yes, chain `evolve-suggest`.
 
 **Inputs**: session outcomes, RESEARCH_STATE.md, EXPERIMENTS.json
 **Outputs**: updated state files (+ optional digest)

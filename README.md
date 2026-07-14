@@ -22,12 +22,12 @@ You talk naturally. SER detects your intent and routes to the right micro-skill:
 | "What should I do next?" | `plan-suggest` — prioritized tasks |
 | "Design the experiment" | `experiment-plan` — claims / variables / baselines |
 | "Sweep these hyperparameters" | `experiment-dse` — search strategy + configs |
-| "Run the experiment" | `experiment-run` — launch + monitoring |
+| "Run the experiment" | `experiment-run` — contract-gated launch via `harness ext-launch` |
 | "Any novel ideas for X?" | `idea` (discover) → `idea-verify` → `idea` (refine) |
 | "Write the introduction" | `writing` (draft mode) — section draft |
-| "Plot the results as a bar chart" | `paper-figure` — PGFPlots / matplotlib |
-| "Compile the paper" | `paper-compile` — pdflatex + bibtex/biber |
-| "Implement this feature" | `code-roadmap` → `code-implement` → `code-review` → `code-commit` |
+| "Plot the results as a bar chart" | `paper-assets` (figure mode) — PGFPlots / matplotlib |
+| "Compile the paper" | `paper-assets` (compile mode) — `scripts/compile_paper.sh` |
+| "Implement this feature" | `code` (roadmap) → `code-implement` → `code-review` → `code` (commit) |
 | (end conversation) | `session-close` — evidence-first wrap-up |
 
 Every skill execution generates feedback. Over sessions, SER proposes improvements
@@ -98,7 +98,7 @@ bash scripts/install-skills.sh --force    # overwrite existing skills
 
 ```bash
 bash scripts/install-skills.sh --only 'paper-*'
-bash scripts/install-skills.sh --only 'code-*,paper-figure'
+bash scripts/install-skills.sh --only 'code*,paper-assets'
 bash scripts/install-skills.sh --exclude 'theory,proof'
 ```
 
@@ -122,7 +122,7 @@ Each SER skill lives in its own directory under `skills/` with a standard
 `SKILL.md` (YAML frontmatter + body), so Claude Code auto-discovers and
 auto-triggers them once installed.
 
-## Skills (32 SER + 1 external — consolidating toward ~20, see REFACTOR_PLAN.md §7)
+## Skills (27 SER + 1 external — consolidated from 57, see REFACTOR_PLAN.md §7)
 
 Each skill lives in `skills/{skill-name}/SKILL.md` with standard YAML frontmatter.
 Skills marked † ship both `SKILL.claude.md` and `SKILL.codex.md` variants — pick
@@ -133,12 +133,12 @@ via `--codex-track` at install time.
 | **Session** | `session-open`, `session-close` | Lifecycle: status banner, auto-save |
 | **Paper reading** | `paper-read` (standard / deep / compare / index modes), `paper-lit-search` | Reading, comparison, arXiv + Semantic Scholar search |
 | **Paper writing** | `writing` (outline / draft / polish modes), `writing-review`† | Outline → draft → peer-review → polish |
-| **Paper build** | `paper-compile`, `paper-figure`, `paper-illustrate`, `paper-art` | LaTeX build, data plots, architecture diagrams, pixel art |
+| **Paper build** | `paper-assets` (illustrate / figure / art / compile modes) | Architecture diagrams, data plots, pixel art, LaTeX build (`scripts/compile_paper.sh`) |
 | **Theory** | `theory` (formalize / decompose / search / counterexample / generalize modes) | Formalization & proof strategy |
 | **Proof** | `proof` (write / critique / fix / formalize / verify modes) | First draft → review → repair → publication LaTeX → spot-check |
 | **Ideas** | `idea` (explore / discover / refine modes), `idea-verify`† | Directions → gap analysis → novelty check → sharpened proposal |
 | **Experiment** | `experiment-plan`, `experiment-dse`, `experiment-run`, `experiment-monitor` (thin, over `harness ext-status`), `experiment-analyze` | Contract → sweep → dispatch → monitor → evaluate |
-| **Coding** | `code-roadmap`, `code-branch`, `code-implement`†, `code-debug`, `code-review`†, `code-commit` | Plan → branch → implement → debug → review → commit |
+| **Coding** | `code` (branch / roadmap / debug / commit modes), `code-implement`†, `code-review`† | Plan → branch → implement → debug → review → commit |
 | **Planning** | `plan-suggest` (+milestone mode), `decision-analyze` (+converge mode) | Project management (status → `python -m harness status`; progress reports → `checklist`) |
 | **Checklist** | `checklist` (modes: create / update / verify / recount) | Paper audit & claim tracking |
 | **Memory** | `memory` (modes: write / retrieve / consolidate / forget) | Persistent cross-session memory |
@@ -195,6 +195,7 @@ summary). An experiment is complete only after its evaluation has run.
 ├── CLAUDE.md              # Research protocol (loop, state model, intent router)
 ├── RESEARCH_STATE.md      # Scientific state: question, hypotheses, evidence
 ├── EXPERIMENTS.json       # Experiment ledger (planned/running/complete + verdicts)
+├── IDEA_BACKLOG.md        # Out-of-scope ideas parked with revisit conditions
 ├── harness/               # Minimal research harness (contract, rundir, cli, loop)
 ├── configs/               # Experiment configs, each with a pre-registered contract
 ├── runs/                  # Self-contained run records
@@ -202,7 +203,7 @@ summary). An experiment is complete only after its evaluation has run.
 ├── config.template.yaml   # Copy to config.yaml and customize
 ├── README.md / LICENSE
 ├── skills/
-│   ├── {skill-name}/      # 32 SER skills (consolidating; mode-based merges ongoing)
+│   ├── {skill-name}/      # 27 SER skills (consolidated from 57; mode-based)
 │   ├── _shared/           # Shared infra read by related skills
 │   │   ├── checklist-engine.md
 │   │   ├── memory-tiers.md
@@ -288,7 +289,7 @@ The root `CLAUDE.md` is the bootloader; subdirectory files are namespace guides.
 → writing-review simulates peer review (3-way if --codex-track codex)
 
 "Compile the paper"
-→ paper-compile runs pdflatex + bibtex/biber, reports errors
+→ paper-assets (compile mode) runs scripts/compile_paper.sh, reports errors
 ```
 
 ### Experiment Lifecycle
@@ -304,17 +305,17 @@ The root `CLAUDE.md` is the bootloader; subdirectory files are namespace guides.
 → experiment-run dispatches (GPU pre-flight + SSH aware)
 
 "Analyze the results"
-→ experiment-analyze → paper-figure renders publication-ready plots
+→ experiment-analyze → paper-assets (figure mode) renders publication-ready plots
 ```
 
 ### Coding Workflow
 
 ```
 "Start a branch for the ingest refactor"
-→ code-branch creates feat/... and (optionally) a worktree
+→ code (branch mode) creates feat/... and (optionally) a worktree
 
 "Plan the refactor first"
-→ code-roadmap breaks it into steps
+→ code (roadmap mode) breaks it into steps
 
 "Implement step 2"
 → code-implement (with /codex:rescue fallback if --codex-track codex)
@@ -323,7 +324,7 @@ The root `CLAUDE.md` is the bootloader; subdirectory files are namespace guides.
 → code-review (with /codex:review as 2nd reviewer if --codex-track codex)
 
 "Commit"
-→ code-commit following shared git conventions
+→ code (commit mode) following shared git conventions
 ```
 
 ## License

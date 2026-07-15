@@ -1,13 +1,24 @@
 ---
 name: idea
-description: Ideation in one mode-based skill — EXPLORE (open-ended: 3-5 research directions with pros/cons/effort, ranked), DISCOVER (gap analysis over papers + methodology → 8-12 scored ideas saved to methodology/ideas/), REFINE (rough idea → committable proposal with problem statement, differentiation table, falsifier, and minimal validation experiment). Absorbs the former research-explore / idea-discover / idea-refine skills — those names now refer to modes here. Novelty checking stays a separate skill (`idea-verify`, codex-track variants). Triggers on "brainstorm ideas", "what are the possible directions?", "find research gaps", "refine this idea", "make this concrete", "细化想法", or "park this idea" / "add to backlog" / "not now" for off-scope ideas.
+description: >-
+  Ideation in one mode-based skill — EXPLORE (open-ended: 3-5 research
+  directions with pros/cons/effort, ranked), DISCOVER (gap analysis over papers
+  + methodology → 8-12 scored ideas saved to methodology/ideas/), REFINE (rough
+  idea → committable proposal with problem statement, differentiation table,
+  falsifier, and minimal validation experiment). Absorbs the former
+  research-explore / idea-discover / idea-refine skills — those names now refer
+  to modes here. Novelty checking stays a separate skill (`idea-verify`) with
+  runtime-specific single-model manifests. Triggers on "brainstorm ideas", "what are the possible
+  directions?", "find research gaps", "refine this idea", "make this concrete",
+  "细化想法", or "park this idea" / "add to backlog" / "not now" for off-scope
+  ideas.
 ---
 
 # idea
 
-Novelty checking is the separate `idea-verify` skill (codex-track variants).
-Chain: EXPLORE (wide) → DISCOVER (scored) → `idea-verify` → REFINE (sharp) →
-`experiment-plan`.
+Novelty checking is the separate `idea-verify` skill, executed directly by the
+active single-model runtime. Chain: EXPLORE (wide) → DISCOVER (scored) →
+`idea-verify` → REFINE (sharp) → `experiment-plan`.
 
 ## Mode: EXPLORE — "what are the possible directions?", open-ended
 
@@ -69,7 +80,7 @@ current `RESEARCH_STATE.md § Current research question` (Level 1) is not
 automatically pursued — offer to append it to `IDEA_BACKLOG.md` instead:
 `- [ ] {idea} — relates to: {future question} — why not now: {reason} —
 revisit when: {condition}`. This keeps scope drift visible instead of silent
-(`CLAUDE.md § Hypothesis Closure & Scope Discipline`).
+(root protocol, `Hypothesis Closure & Scope Discipline`).
 
 **Inputs**: project context, paper notes, discovery entries, verify reports
 **Outputs**: inline (EXPLORE) · `methodology/ideas/YYYY-MM-DD-discovery.md`

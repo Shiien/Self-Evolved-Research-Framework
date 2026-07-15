@@ -6,7 +6,7 @@
 | `notify.py` | Fail-open webhook notifications | `python notify.py "Message" [--level info\|warning\|error\|success]` |
 | `skill_analyzer.py` | Parse session logs for usage stats | `python skill_analyzer.py` |
 | `pack.sh` | Pack framework as clean template for new projects | `bash scripts/pack.sh [VERSION]` |
-| `install-skills.sh` | Install bundled Claude Code skills into `.claude/skills` | `bash scripts/install-skills.sh [--link] [--force] [--user] [--only PATTERNS] [--exclude PATTERNS] [--codex-track claude\|codex]` |
+| `install-skills.sh` | Install runtime-specific single-model manifests for Claude (`.claude/skills`) or Codex (`.agents/skills`) | Claude: `bash scripts/install-skills.sh [--runtime claude] [--link] [--force] [--user] [--only PATTERNS] [--exclude PATTERNS]`<br>Codex: `bash scripts/install-skills.sh --runtime codex [--force] [--only PATTERNS] [--exclude PATTERNS]` |
 
 ## Dependencies
 

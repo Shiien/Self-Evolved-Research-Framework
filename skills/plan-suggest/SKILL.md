@@ -1,6 +1,14 @@
 ---
 name: plan-suggest
-description: The SELECT stage of the research loop. Reads RESEARCH_STATE.md (uncertainties + next recommended experiments) and EXPERIMENTS.json first, then the checklist tree for deliverable deadlines, and produces a prioritized list of 3-5 next actions — experiments ranked by uncertainty-resolved-per-cost, deliverables by milestone. Includes a MILESTONE mode (absorbed the former plan-milestone skill): days-to-deadline, phase progress, token budget, on-track/at-risk/behind. Triggers on "what should I do next?", "what's the priority?", "are we on track?", "when is the deadline?", "milestone status".
+description: >-
+  The SELECT stage of the research loop. Reads RESEARCH_STATE.md (uncertainties
+  + next recommended experiments) and EXPERIMENTS.json first, then the checklist
+  tree for deliverable deadlines, and produces a prioritized list of 3-5 next
+  actions — experiments ranked by uncertainty-resolved-per-cost, deliverables
+  by milestone. Includes a MILESTONE mode (absorbed the former plan-milestone
+  skill): days-to-deadline, phase progress, token budget,
+  on-track/at-risk/behind. Triggers on "what should I do next?", "what's the
+  priority?", "are we on track?", "when is the deadline?", "milestone status".
 ---
 
 # plan-suggest
@@ -24,8 +32,8 @@ seems unsure about next steps.
    - a broken baseline or failed/unresumed run outranks everything (the loop
      rule: verify the baseline before new experiments);
    - a hypothesis stuck at two consecutive `inconclusive` verdicts outranks
-     fresh exploration — it needs a narrow/terminate decision (`CLAUDE.md §
-     Hypothesis Closure & Scope Discipline`) before new work starts under
+     fresh exploration — it needs a narrow/terminate decision (root protocol,
+     `Hypothesis Closure & Scope Discipline`) before new work starts under
      the same question;
    - experiments: highest uncertainty-resolved-per-cost first — prefer the
      cheapest run that can falsify something (one conceptual factor);

@@ -1,6 +1,7 @@
 # SER — Self-Evolved Research
 
-> A behavior-driven research framework for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+> A behavior-driven research framework for [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+> and Codex.
 > Skills trigger automatically. The framework improves its own skills through use.
 >
 > **[中文版 README](README.zh-CN.md)**
@@ -27,12 +28,12 @@ You talk naturally. SER detects your intent and routes to the right micro-skill:
 | "Write the introduction" | `writing` (draft mode) — section draft |
 | "Plot the results as a bar chart" | `paper-assets` (figure mode) — PGFPlots / matplotlib |
 | "Compile the paper" | `paper-assets` (compile mode) — `scripts/compile_paper.sh` |
-| "Implement this feature" | `code` (roadmap) → `code-implement` → `code-review` → `code` (commit) |
+| "Implement this feature" | `code` (ROADMAP) → `code-implement` → `code-review` → `code` (COMMIT) |
 | (end conversation) | `session-close` — evidence-first wrap-up |
 
-Every skill execution generates feedback. Over sessions, SER proposes improvements
-to its own skill specs via natural language TD learning — the skills you use today
-become better tomorrow.
+When a skill execution produces a real reward signal, SER records feedback.
+Over sessions, SER can propose improvements to its own skill specs via natural
+language TD learning — the skills you use today become better tomorrow.
 
 ## Getting Started
 
@@ -72,7 +73,12 @@ research:
   keywords: [...]
 ```
 
-### 4. Start Working
+### 4. Choose a Runtime and Start Working
+
+Claude Code and Codex are independent single-model runtimes. Each runtime
+executes the complete SER workflow directly; neither runtime calls the other.
+
+For Claude Code:
 
 ```bash
 claude
@@ -83,11 +89,17 @@ SER will automatically:
 2. Show a status banner (`session-open`) — research question, experiment ledger, last run
 3. Wait for your research request — no commands needed
 
-### 5. Install the skills into `.claude/skills/`
+For Codex, install the Codex manifests first (see below), then run `codex`.
+
+### 5. Install Skills
+
+The installer defaults to the Claude runtime. It selects
+`SKILL.claude.md` before a runtime-neutral `SKILL.md` and installs into
+`.claude/skills/`:
 
 ```bash
 bash scripts/install-skills.sh            # copy into ./.claude/skills
-bash scripts/install-skills.sh --link     # symlink (dev workflow)
+bash scripts/install-skills.sh --link     # link neutral manifests; copy native manifests
 bash scripts/install-skills.sh --user     # install into ~/.claude/skills
 bash scripts/install-skills.sh --list     # list discovered skills
 bash scripts/install-skills.sh --dry-run  # preview without writing
@@ -102,43 +114,57 @@ bash scripts/install-skills.sh --only 'code*,paper-assets'
 bash scripts/install-skills.sh --exclude 'theory,proof'
 ```
 
-**Codex track** — for skills that ship a Codex-augmented variant
-(`code-implement`, `code-review`, `writing-review`, `idea-verify`):
+For Codex, select the Codex runtime explicitly. It selects
+`SKILL.openai.md` before a runtime-neutral `SKILL.md` and writes materialized
+copies to `.agents/skills/`:
 
 ```bash
-bash scripts/install-skills.sh --codex-track claude   # default, upstream Claude-only
-bash scripts/install-skills.sh --codex-track codex    # Codex-augmented cross-model review
+bash scripts/install-skills.sh --runtime codex
+codex
 ```
 
-The `codex` track adds an extra Codex pass:
-`code-implement` dispatches `/codex:rescue` for medium/large tasks;
-`code-review` adds `/codex:review` as a second reviewer;
-`writing-review` adds a 3rd Codex peer reviewer;
-`idea-verify` adds a 4th evidence source via `mcp__codex__codex`.
-When selected, the installer strictly preflights Codex CLI + Superpowers +
-`/codex:review` + `mcp__codex__codex` and aborts if any dep is missing.
+Four judgment-heavy responsibilities remain independent skills on both
+runtimes: `code-implement`, `code-review`, `idea-verify`, and
+`writing-review`. Their runtime-specific single-model manifests are executed
+by the active runtime itself.
 
-Each SER skill lives in its own directory under `skills/` with a standard
-`SKILL.md` (YAML frontmatter + body), so Claude Code auto-discovers and
-auto-triggers them once installed.
+Claude `--link` installs a symlink only when the source is a runtime-neutral
+`SKILL.md`. When a skill has a runtime-native manifest, the installer
+materializes a copy as the installed `SKILL.md`. Codex installations are
+always project-local materialized copies; `--link` and `--user` are not
+supported with `--runtime codex`.
 
-## Skills (27 SER + 1 external — consolidated from 57, see REFACTOR_PLAN.md §7)
+## Skills (27 core SER + 11 bundled auxiliary/specialist + 1 external)
 
-Each skill lives in `skills/{skill-name}/SKILL.md` with standard YAML frontmatter.
-Skills marked † ship both `SKILL.claude.md` and `SKILL.codex.md` variants — pick
-via `--codex-track` at install time.
+Each skill lives in `skills/{skill-name}/` with standard YAML frontmatter.
+Most use a neutral `SKILL.md`; runtime-specific skills use
+`SKILL.claude.md` and `SKILL.openai.md`, materialized as `SKILL.md` during
+installation.
+
+A fresh unfiltered installation creates **39 skill directories**. The table
+below lists the **27 core SER skills** consolidated from the original 57 (see
+`REFACTOR_PLAN.md §7`). The 11 bundled directories not counted as core are:
+
+- the `peer-review` coordinator;
+- nine peer-review specialists: `peer-review-correctness`,
+  `peer-review-critique`, `peer-review-evaluations`, `peer-review-for-ddl`,
+  `peer-review-presentation`, `peer-review-qa`, `peer-review-sac`,
+  `peer-review-significance`, and `peer-review-story`;
+- the special-purpose `play-tic-tac-toe` skill.
+
+The final directory is the external `fey-r` skill described below.
 
 | Category | Skills | Purpose |
 |----------|--------|---------|
 | **Session** | `session-open`, `session-close` | Lifecycle: status banner, auto-save |
 | **Paper reading** | `paper-read` (standard / deep / compare / index modes), `paper-lit-search` | Reading, comparison, arXiv + Semantic Scholar search |
-| **Paper writing** | `writing` (outline / draft / polish modes), `writing-review`† | Outline → draft → peer-review → polish |
+| **Paper writing** | `writing` (OUTLINE / DRAFT / POLISH modes), `writing-review` | Outline → draft → peer-review → polish |
 | **Paper build** | `paper-assets` (illustrate / figure / art / compile modes) | Architecture diagrams, data plots, pixel art, LaTeX build (`scripts/compile_paper.sh`) |
 | **Theory** | `theory` (formalize / decompose / search / counterexample / generalize modes) | Formalization & proof strategy |
 | **Proof** | `proof` (write / critique / fix / formalize / verify modes) | First draft → review → repair → publication LaTeX → spot-check |
-| **Ideas** | `idea` (explore / discover / refine modes), `idea-verify`† | Directions → gap analysis → novelty check → sharpened proposal |
+| **Ideas** | `idea` (EXPLORE / DISCOVER / REFINE modes), `idea-verify` | Directions → gap analysis → novelty check → sharpened proposal |
 | **Experiment** | `experiment-plan`, `experiment-dse`, `experiment-run`, `experiment-monitor` (thin, over `harness ext-status`), `experiment-analyze` | Contract → sweep → dispatch → monitor → evaluate |
-| **Coding** | `code` (branch / roadmap / debug / commit modes), `code-implement`†, `code-review`† | Plan → branch → implement → debug → review → commit |
+| **Coding** | `code` (BRANCH / ROADMAP / DEBUG / COMMIT modes), `code-implement`, `code-review` | Plan → branch → implement → debug → review → commit |
 | **Planning** | `plan-suggest` (+milestone mode), `decision-analyze` (+converge mode) | Project management (status → `python -m harness status`; progress reports → `checklist`) |
 | **Checklist** | `checklist` (modes: create / update / verify / recount) | Paper audit & claim tracking |
 | **Memory** | `memory` (modes: write / retrieve / consolidate / forget) | Persistent cross-session memory |
@@ -156,14 +182,18 @@ To add your own, use `git submodule add <url> skills/external/<name>/`.
 
 ## Skill Evolution (TD-NL)
 
-The framework optimizes its own micro-skill specs through natural language TD learning:
+SER updates skill values only when use produces a real reward signal. Audits
+and spec edits remain explicit and approval-gated:
 
 ```
-skill fires → G2 assessment (was it useful?) → accumulate over sessions
-                                                        ↓
-session.close → G1 aggregation → per-skill value update → spec edit proposal
-                                                        ↓
-                                    user approves → evolve.apply → rollback if quality drops
+real reward signal → signal-gated skill-feedback
+                   → online EWMA Q update + optional pending flag
+
+explicit audit or session-close opt-in → evolve-suggest
+                                       → inspect pending flags, derive V^L,
+                                         optionally draft one proposal
+
+user approves proposal → evolve-apply → archive + edit (or approved rollback)
 ```
 
 The optimization target is the skill specs themselves (`skills/{skill-name}/SKILL.md`).
@@ -193,23 +223,22 @@ summary). An experiment is complete only after its evaluation has run.
 
 ```
 ├── CLAUDE.md              # Research protocol (loop, state model, intent router)
+├── AGENTS.md              # Codex-native version of the v6 research protocol
+├── .agents/skills/        # Materialized Codex skill installation target
 ├── RESEARCH_STATE.md      # Scientific state: question, hypotheses, evidence
 ├── EXPERIMENTS.json       # Experiment ledger (planned/running/complete + verdicts)
 ├── IDEA_BACKLOG.md        # Out-of-scope ideas parked with revisit conditions
 ├── harness/               # Minimal research harness (contract, rundir, cli, loop)
 ├── configs/               # Experiment configs, each with a pre-registered contract
 ├── runs/                  # Self-contained run records
-├── tests/                 # Harness + regression tests (baseline check)
 ├── config.template.yaml   # Copy to config.yaml and customize
 ├── README.md / LICENSE
 ├── skills/
-│   ├── {skill-name}/      # 27 SER skills (consolidated from 57; mode-based)
+│   ├── {skill-name}/      # 27 core + 11 bundled auxiliary/specialist skills
 │   ├── _shared/           # Shared infra read by related skills
 │   │   ├── checklist-engine.md
 │   │   ├── memory-tiers.md
 │   │   ├── evolve-cycle.md
-│   │   ├── codex-contract.md       # Codex track behaviour contract
-│   │   ├── cross-model-review.md   # ADD-mode cross-model review protocol
 │   │   └── git-conventions.md      # Shared git workflow
 │   ├── external/          # External skills (git submodules)
 │   │   └── fey-r/         # Feynman-method paper reading
@@ -232,18 +261,19 @@ summary). An experiment is complete only after its evaluation has run.
 └── docs/                  # Plans, reports
 ```
 
-## How CLAUDE.md Works
+## How the Runtime Protocols Work
 
-SER is driven by `CLAUDE.md` — a behavioral protocol that Claude Code reads automatically.
-It defines:
+Claude Code reads `CLAUDE.md`; Codex reads `AGENTS.md`. These independent
+runtime protocols implement the same evidence-first state model and define:
 
 - **Intent router**: lifecycle-stage-grouped patterns that map your messages to SER skills
-- **Session lifecycle**: auto-open/close with memory persistence
-- **Data contracts**: standardized formats for logs, paper notes, memory files
-- **Evolution loop**: G2/G1 feedback cycle for skill improvement
+- **Session lifecycle**: open from canonical state; close by persisting evidence and unresolved work to its canonical owner
+- **Data contracts**: standardized formats for research state, experiment records, paper notes, and memory files
+- **Evolution loop**: signal-gated online Q updates, optional audits, and user-approved spec edits
 
-Each subdirectory has its own `CLAUDE.md` with scoped context for that area.
-The root `CLAUDE.md` is the bootloader; subdirectory files are namespace guides.
+Claude namespace guides provide additional scoped context in subdirectories.
+For Codex, `AGENTS.md` is the root behavioral protocol and installed
+materialized `SKILL.md` files supply the runtime-specific workflows.
 
 ## Typical Workflows
 
@@ -260,7 +290,8 @@ The root `CLAUDE.md` is the bootloader; subdirectory files are namespace guides.
 → proof (critique mode) checks it
 
 "That's it for today"
-→ session-close saves summary + evolve-suggest updates skill values
+→ session-close persists evidence, ledger changes, and unresolved work to canonical state
+→ evolve-suggest runs only if the user explicitly requests or opts in to an audit
 ```
 
 ### Idea Exploration
@@ -286,7 +317,7 @@ The root `CLAUDE.md` is the bootloader; subdirectory files are namespace guides.
 → writing (draft mode) produces a draft
 
 "Review this version"
-→ writing-review simulates peer review (3-way if --codex-track codex)
+→ writing-review evaluates the draft in the active runtime
 
 "Compile the paper"
 → paper-assets (compile mode) runs scripts/compile_paper.sh, reports errors
@@ -312,19 +343,19 @@ The root `CLAUDE.md` is the bootloader; subdirectory files are namespace guides.
 
 ```
 "Start a branch for the ingest refactor"
-→ code (branch mode) creates feat/... and (optionally) a worktree
+→ code (BRANCH mode) creates feat/... and (optionally) a worktree
 
 "Plan the refactor first"
-→ code (roadmap mode) breaks it into steps
+→ code (ROADMAP mode) breaks it into steps
 
 "Implement step 2"
-→ code-implement (with /codex:rescue fallback if --codex-track codex)
+→ code-implement executes the roadmap in the active runtime
 
 "Review the diff"
-→ code-review (with /codex:review as 2nd reviewer if --codex-track codex)
+→ code-review reviews the completed diff in the active runtime
 
 "Commit"
-→ code (commit mode) following shared git conventions
+→ code (COMMIT mode) following shared git conventions
 ```
 
 ## License

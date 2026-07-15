@@ -1,12 +1,13 @@
 ---
 name: writing
-description: Paper prose production in one mode-based skill — OUTLINE (section structure, page budget, figure plan, and a Claims-Evidence Matrix mapping every claim to its evidence), DRAFT (write a section in venue-appropriate LaTeX with citation auto-verification via citation_fetch.py), POLISH (tighten specific text with before/after). Absorbs the former writing-outline / writing-draft / writing-polish skills — those names now refer to modes here. Peer review stays a separate skill (`writing-review`, codex-track variants). Triggers on "outline the paper", "draft the introduction", "write the method section", "polish this paragraph", "make this clearer".
+description: Paper prose production in one mode-based skill — OUTLINE (section structure, page budget, figure plan, and a Claims-Evidence Matrix mapping every claim to its evidence), DRAFT (write a section in venue-appropriate LaTeX with citation auto-verification via citation_fetch.py), POLISH (tighten specific text with before/after). Absorbs the former writing-outline / writing-draft / writing-polish skills — those names now refer to modes here. Peer review stays a separate skill (`writing-review`) with runtime-specific single-model manifests. Triggers on "outline the paper", "draft the introduction", "write the method section", "polish this paragraph", "make this clearer".
 ---
 
 # writing
 
-Review of drafted text is the separate `writing-review` skill (it ships
-codex-track variants). Chain: OUTLINE → DRAFT → `writing-review` → POLISH.
+Review of drafted text is the separate `writing-review` skill, executed
+directly by the active single-model runtime. Chain: OUTLINE → DRAFT →
+`writing-review` → POLISH.
 
 ## Mode: OUTLINE — "how should I organize the paper?", new paper
 

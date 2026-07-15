@@ -4,18 +4,24 @@ This directory contains Python scripts that support the SER framework, mainly to
 
 ## Script List
 
-### `install-skills.sh` - Install Bundled Skills into `.claude/skills`
+### `install-skills.sh` - Install Bundled Skills for Claude or Codex
 
 **Purpose**: Auto-discover every skill under `./skills/` (any directory containing
-a `SKILL.md`) and install it into a `.claude/skills` directory so Claude Code can
-load it. Non-skill directories like `skills/_shared/` and `skills/td-nl/` are
-skipped (they have no `SKILL.md`).
+`SKILL.md`, `SKILL.claude.md`, or `SKILL.openai.md`) and install it for one
+selected single-model runtime. Claude selects `SKILL.claude.md` before
+`SKILL.md` and installs to `.claude/skills/`; Codex selects
+`SKILL.openai.md` before `SKILL.md` and installs to `.agents/skills/`.
+Runtime-native manifests are materialized as installed `SKILL.md` files.
+Non-skill directories like `skills/_shared/` and `skills/td-nl/` are skipped
+because they have no skill manifest.
 
 **Usage**:
 ```bash
 bash scripts/install-skills.sh                 # copy into ./.claude/skills
-bash scripts/install-skills.sh --link          # symlink (dev workflow)
-bash scripts/install-skills.sh --user          # install to ~/.claude/skills
+bash scripts/install-skills.sh --runtime claude # explicit form of the default
+bash scripts/install-skills.sh --runtime codex # copy into ./.agents/skills
+bash scripts/install-skills.sh --link          # link neutral Claude manifests
+bash scripts/install-skills.sh --user          # install to ~/.claude/skills (Claude runtime only)
 bash scripts/install-skills.sh --dry-run       # preview without writing
 bash scripts/install-skills.sh --list          # list discovered skills
 bash scripts/install-skills.sh --force         # overwrite existing installs
@@ -23,12 +29,18 @@ bash scripts/install-skills.sh --help          # full option reference
 ```
 
 Safe to re-run; existing installs are skipped unless `--force` is passed.
+With Claude `--link`, neutral manifests are symlinked while runtime-native
+manifests are materialized as copies. Codex uses project-local materialized
+copies only, so its runtime rejects `--link` and `--user`.
 
 ---
 
-### `skill_analyzer.py` - Skill Usage Statistics Analyzer
+### `skill_analyzer.py` - Optional Legacy Usage Diagnostic
 
-**Purpose**: Incrementally scan Skill invocation logs and generate a structured statistics report
+**Purpose**: Incrementally scan historical skill-invocation logs and emit a
+structured report for manual diagnostics. This script is retained for legacy
+log inspection; its output is **not** a canonical v6 skill-evolution input and
+does not update Q^L, create pending flags, propose edits, or apply changes.
 
 **Usage**:
 ```bash
@@ -36,13 +48,18 @@ python scripts/skill_analyzer.py
 ```
 
 **Output**:
-- `logs/analysis/skills_stats.json` - statistics report (read by `/skill-evolve`)
-- `logs/analysis/last_processed.txt` - last processed position (incremental marker)
+- `logs/analysis/skills_stats.json` — optional diagnostic report
+- `logs/analysis/last_processed.txt` — incremental scan marker
 
-**Token Savings**:
-- Traditional approach: `/skill-evolve` needs 20-30K tokens to read and analyze logs
-- Script-based approach: only 3-5K tokens to read the JSON report
-- **Roughly 80% savings**
+The canonical v6 path is independent of this analyzer:
+
+1. A real reward signal triggers signal-gated `skill-feedback`.
+2. `skill-feedback` performs the online EWMA Q update and may write a pending
+   flag.
+3. A user-requested audit, or an explicit session-close opt-in, runs
+   `evolve-suggest` over pending flags and derived V^L.
+4. Only user-approved proposals reach `evolve-apply`, which archives before
+   editing and supports approved rollback.
 
 ---
 
@@ -51,75 +68,3 @@ python scripts/skill_analyzer.py
 ```bash
 pip install -r scripts/requirements.txt
 ```
-
----
-
-## Integrating with /skill-evolve
-
-`/skill-evolve` execution flow:
-
-```
-1. [Bash] Run `python scripts/skill_analyzer.py`
-    ↓
-2. [Read] Read `logs/analysis/skills_stats.json` (cost <1K tokens)
-    ↓
-3. [Claude] Present the report + user interaction (cost 8-15K tokens)
-    ↓
-4. [Claude] Generate improvement actions + update files (cost 5-10K tokens)
-```
-
-**Total cost**: 13-25K tokens (about 25-40% less than the original 20-30K)
-
----
-
-## Data Model
-
-### Skill ID Mapping
-
-Each Skill has a unique ID:
-
-```python
-SKILL_IDS = {
-    # Meta layer
-    "research-init": "meta_001",
-    "background-builder": "meta_002",
-    ...
-
-    # Object layer
-    "problem-decompose": "research_001",
-    "proof-refine": "research_004",
-    ...
-}
-```
-
-### Log Format Requirements
-
-Each Skill log file should include the following fields (used for analytics):
-
-```yaml
-# logs/research-skills/{skill_name}/YYYY-MM-DD_NNN.yaml
-
-metadata:
-  skill_id: "research_004"  # unique identifier
-  timestamp: "2026-02-15 14:30"
-
-token_consumption:
-  actual: 25000
-
-user_satisfaction: 5  # 1-5
-
-variant_used: "deep"  # if a variant was used
-variant_winner: "deep"  # if that variant won
-```
-
----
-
-## Future Extensions
-
-- [ ] Support extracting Skill calls from Claude conversation logs (via pattern matching)
-- [ ] Time-series analysis (token usage trends, satisfaction changes)
-- [ ] Automatically generate variant suggestions (based on failure patterns)
-
----
-
-*Version: 1.0*

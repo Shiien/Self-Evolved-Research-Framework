@@ -1,6 +1,16 @@
 ---
 name: paper-assets
-description: All paper production tooling in one mode-based skill — ILLUSTRATE (rigorous structural diagrams: architecture / pipeline / flow / concept map, TikZ or SVG), FIGURE (data-driven plots from experiment results with the generation script preserved for reproducibility), ART (decorative identity visuals: pixel art, mascots, README heroes), COMPILE (build the paper PDF via scripts/compile_paper.sh with integrity pre-checks and confirmed auto-fixes). Absorbs the former paper-illustrate / paper-figure / paper-art / paper-compile skills — those names now refer to modes here. Triggers on "draw the architecture", "画架构图", "plot the results", "bar chart", "heatmap", "画图", "pixel art", "project mascot", "compile the paper", "build PDF", "编译论文".
+description: >-
+  All paper production tooling in one mode-based skill — ILLUSTRATE (rigorous
+  structural diagrams: architecture / pipeline / flow / concept map, TikZ or
+  SVG), FIGURE (data-driven plots from experiment results with the generation
+  script preserved for reproducibility), ART (decorative identity visuals:
+  pixel art, mascots, README heroes), COMPILE (build the paper PDF via
+  scripts/compile_paper.sh with integrity pre-checks and confirmed auto-fixes).
+  Absorbs the former paper-illustrate / paper-figure / paper-art / paper-compile
+  skills — those names now refer to modes here. Triggers on "draw the
+  architecture", "画架构图", "plot the results", "bar chart", "heatmap", "画图",
+  "pixel art", "project mascot", "compile the paper", "build PDF", "编译论文".
 ---
 
 # paper-assets

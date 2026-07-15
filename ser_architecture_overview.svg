@@ -43,8 +43,8 @@
   </defs>
 
   <!-- ═══ Title ═══ -->
-  <text x="460" y="28" text-anchor="middle" class="t-title">SER v5.0 — Self-Evolved Research Framework</text>
-  <text x="460" y="46" text-anchor="middle" class="t-annot">67 SER skills + 1 external submodule · 6 shared protocols · TD-NL evolution with TextGrad backend</text>
+  <text x="460" y="28" text-anchor="middle" class="t-title">SER v6.0 — Self-Evolved Research Framework</text>
+  <text x="460" y="46" text-anchor="middle" class="t-annot">27 core + 11 bundled auxiliary/specialist + 1 external = 39 installed skill directories</text>
 
   <!-- ═══ Layer 1: Checklist Engine ═══ -->
   <text x="880" y="76" text-anchor="end" class="t-section">Layer 1 — Checklist engine</text>
@@ -97,13 +97,13 @@
 
   <!-- ═══ Divider 1 ═══ -->
   <line x1="30" y1="244" x2="890" y2="244" class="divider"/>
-  <text x="460" y="264" text-anchor="middle" class="t-section">Layer 2 — Micro-skill layer · 67 SER skills across 18 domains</text>
+  <text x="460" y="264" text-anchor="middle" class="t-section">Layer 2 — 27 core skills · 11 bundled auxiliaries/specialists · 1 external</text>
 
   <!-- ═══ Intent Router ═══ -->
   <rect x="40" y="286" width="140" height="56" rx="8" class="sk-fill"/>
   <text x="110" y="304" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="14">Intent Router</text>
-  <text x="110" y="322" text-anchor="middle" dominant-baseline="central" class="sk-sub">CLAUDE.md · 40 patterns</text>
-  <text x="110" y="335" text-anchor="middle" dominant-baseline="central" class="sk-sub">auto-fires SKILL.md</text>
+  <text x="110" y="322" text-anchor="middle" dominant-baseline="central" class="sk-sub">CLAUDE.md / AGENTS.md</text>
+  <text x="110" y="335" text-anchor="middle" dominant-baseline="central" class="sk-sub">routes installed SKILL.md</text>
 
   <!-- Intent router → skill grid -->
   <line x1="180" y1="314" x2="210" y2="314" class="arrow-line" marker-end="url(#arrow)"/>
@@ -111,20 +111,20 @@
   <!-- Skill domain grid: 4 cols × 4 rows (research chains + engines) -->
   <!-- Row 1 - Research pipelines -->
   <rect x="215" y="278" width="150" height="48" rx="6" class="sk-fill"/>
-  <text x="290" y="294" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Ideas  (3)</text>
-  <text x="290" y="312" text-anchor="middle" dominant-baseline="central" class="sk-sub">discover → verify → refine</text>
+  <text x="290" y="294" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Ideas  (2)</text>
+  <text x="290" y="312" text-anchor="middle" dominant-baseline="central" class="sk-sub">explore · discover → verify → refine</text>
 
   <rect x="375" y="278" width="150" height="48" rx="6" class="sk-fill"/>
-  <text x="450" y="294" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Paper reading  (4)</text>
-  <text x="450" y="312" text-anchor="middle" dominant-baseline="central" class="sk-sub">lit-search · read · compare · index</text>
+  <text x="450" y="294" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Paper reading  (2)</text>
+  <text x="450" y="312" text-anchor="middle" dominant-baseline="central" class="sk-sub">lit-search · read (4 modes)</text>
 
   <rect x="535" y="278" width="150" height="48" rx="6" class="sk-fill"/>
-  <text x="610" y="294" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Theory  (5)</text>
-  <text x="610" y="312" text-anchor="middle" dominant-baseline="central" class="sk-sub">formalize · decompose · search · …</text>
+  <text x="610" y="294" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Theory  (1)</text>
+  <text x="610" y="312" text-anchor="middle" dominant-baseline="central" class="sk-sub">5 modes in one skill</text>
 
   <rect x="695" y="278" width="180" height="48" rx="6" class="sk-fill"/>
-  <text x="785" y="294" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Proofs  (5)</text>
-  <text x="785" y="312" text-anchor="middle" dominant-baseline="central" class="sk-sub">write → critique → fix → formalize → verify</text>
+  <text x="785" y="294" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Proofs  (1)</text>
+  <text x="785" y="312" text-anchor="middle" dominant-baseline="central" class="sk-sub">5 modes in one skill</text>
 
   <!-- Row 2 - Research pipelines -->
   <rect x="215" y="336" width="150" height="48" rx="6" class="sk-fill"/>
@@ -132,33 +132,33 @@
   <text x="290" y="370" text-anchor="middle" dominant-baseline="central" class="sk-sub">plan → dse → run → monitor → analyze</text>
 
   <rect x="375" y="336" width="150" height="48" rx="6" class="sk-fill"/>
-  <text x="450" y="352" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Writing  (4)</text>
+  <text x="450" y="352" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Writing  (2)</text>
   <text x="450" y="370" text-anchor="middle" dominant-baseline="central" class="sk-sub">outline · draft · review · polish</text>
 
   <rect x="535" y="336" width="150" height="48" rx="6" class="sk-fill"/>
-  <text x="610" y="352" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Paper artifacts  (4)</text>
+  <text x="610" y="352" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Paper assets  (1)</text>
   <text x="610" y="370" text-anchor="middle" dominant-baseline="central" class="sk-sub">illustrate · figure · art · compile</text>
 
   <rect x="695" y="336" width="180" height="48" rx="6" class="cd-fill"/>
-  <text x="785" y="352" text-anchor="middle" dominant-baseline="central" class="cd-text" font-size="13">Code family  (6)  ★ NEW</text>
-  <text x="785" y="370" text-anchor="middle" dominant-baseline="central" class="cd-sub">branch → roadmap → implement → review → debug → commit</text>
+  <text x="785" y="352" text-anchor="middle" dominant-baseline="central" class="cd-text" font-size="13">Code family  (3)</text>
+  <text x="785" y="370" text-anchor="middle" dominant-baseline="central" class="cd-sub">code modes → implement → review</text>
 
   <!-- Row 3 - Engine skills -->
   <rect x="215" y="394" width="150" height="48" rx="6" class="sk-fill"/>
-  <text x="290" y="410" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Planning  (6)</text>
-  <text x="290" y="428" text-anchor="middle" dominant-baseline="central" class="sk-sub">plan-suggest · milestone · status · …</text>
+  <text x="290" y="410" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Planning  (2)</text>
+  <text x="290" y="428" text-anchor="middle" dominant-baseline="central" class="sk-sub">plan-suggest · decision-analyze</text>
 
   <rect x="375" y="394" width="150" height="48" rx="6" class="sk-fill"/>
-  <text x="450" y="410" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Checklist  (4)</text>
-  <text x="450" y="428" text-anchor="middle" dominant-baseline="central" class="sk-sub">create · verify · update · status</text>
+  <text x="450" y="410" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Checklist  (1)</text>
+  <text x="450" y="428" text-anchor="middle" dominant-baseline="central" class="sk-sub">create · update · verify · recount</text>
 
   <rect x="535" y="394" width="150" height="48" rx="6" class="sk-fill"/>
-  <text x="610" y="410" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Memory  (4)</text>
+  <text x="610" y="410" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Memory  (1)</text>
   <text x="610" y="428" text-anchor="middle" dominant-baseline="central" class="sk-sub">write · retrieve · consolidate · forget</text>
 
   <rect x="695" y="394" width="180" height="48" rx="6" class="sk-fill"/>
-  <text x="785" y="410" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Research meta  (3)</text>
-  <text x="785" y="428" text-anchor="middle" dominant-baseline="central" class="sk-sub">explore · design-converge · general-research</text>
+  <text x="785" y="410" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Evidence state</text>
+  <text x="785" y="428" text-anchor="middle" dominant-baseline="central" class="sk-sub">question · contracts · runs · verdicts</text>
 
   <!-- Row 4 - Lifecycle + meta -->
   <rect x="40" y="394" width="140" height="48" rx="6" class="sk-fill"/>
@@ -166,12 +166,12 @@
   <text x="110" y="428" text-anchor="middle" dominant-baseline="central" class="sk-sub">session-open / close</text>
 
   <rect x="40" y="452" width="140" height="48" rx="6" class="td-fill"/>
-  <text x="110" y="468" text-anchor="middle" dominant-baseline="central" class="td-text" font-size="13">Evolution  (2)</text>
-  <text x="110" y="486" text-anchor="middle" dominant-baseline="central" class="td-sub">evolve-suggest · evolve-apply</text>
+  <text x="110" y="468" text-anchor="middle" dominant-baseline="central" class="td-text" font-size="13">Evolution  (3)</text>
+  <text x="110" y="486" text-anchor="middle" dominant-baseline="central" class="td-sub">feedback · suggest · apply</text>
 
   <rect x="215" y="452" width="150" height="48" rx="6" class="sk-fill"/>
-  <text x="290" y="468" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Integration + misc  (2)</text>
-  <text x="290" y="486" text-anchor="middle" dominant-baseline="central" class="sk-sub">project-integrate · play-tic-tac-toe</text>
+  <text x="290" y="468" text-anchor="middle" dominant-baseline="central" class="sk-text" font-size="13">Integration  (1)</text>
+  <text x="290" y="486" text-anchor="middle" dominant-baseline="central" class="sk-sub">project-integrate</text>
 
   <!-- External submodule callout (dashed border) -->
   <rect x="375" y="452" width="150" height="48" rx="6" fill="rgb(225, 245, 238)" stroke="rgb(15, 110, 86)" stroke-width="0.7" stroke-dasharray="5 3"/>
@@ -241,54 +241,53 @@
 
   <!-- ═══ Divider 2 ═══ -->
   <line x1="30" y1="648" x2="890" y2="648" class="divider"/>
-  <text x="460" y="668" text-anchor="middle" class="t-section">Layer 3 — TD-NL skill evolution · with TextGrad backend</text>
+  <text x="460" y="668" text-anchor="middle" class="t-section">Layer 3 — Signal-gated online skill evolution · audit and apply on demand</text>
 
   <!-- ═══ TD-NL Evolution ═══ -->
   <rect x="60" y="686" width="150" height="56" rx="8" class="td-fill"/>
-  <text x="135" y="702" text-anchor="middle" dominant-baseline="central" class="td-text" font-size="14">G2 · Assess</text>
-  <text x="135" y="720" text-anchor="middle" dominant-baseline="central" class="td-sub">per-skill firing</text>
-  <text x="135" y="734" text-anchor="middle" dominant-baseline="central" class="td-sub">→ feedback-log.md</text>
+  <text x="135" y="702" text-anchor="middle" dominant-baseline="central" class="td-text" font-size="14">Reward signal</text>
+  <text x="135" y="720" text-anchor="middle" dominant-baseline="central" class="td-sub">user · downstream · failure</text>
+  <text x="135" y="734" text-anchor="middle" dominant-baseline="central" class="td-sub">self-assessment excluded</text>
 
   <line x1="210" y1="714" x2="246" y2="714" class="arrow-line" marker-end="url(#arrow)"/>
 
   <rect x="246" y="686" width="150" height="56" rx="8" class="td-fill"/>
-  <text x="321" y="702" text-anchor="middle" dominant-baseline="central" class="td-text" font-size="14">G1 · Aggregate</text>
-  <text x="321" y="720" text-anchor="middle" dominant-baseline="central" class="td-sub">session-close</text>
-  <text x="321" y="734" text-anchor="middle" dominant-baseline="central" class="td-sub">value update Q^L, V^L</text>
+  <text x="321" y="702" text-anchor="middle" dominant-baseline="central" class="td-text" font-size="14">Online Q update</text>
+  <text x="321" y="720" text-anchor="middle" dominant-baseline="central" class="td-sub">signal-gated skill-feedback</text>
+  <text x="321" y="734" text-anchor="middle" dominant-baseline="central" class="td-sub">EWMA Q^L + optional flag</text>
 
   <line x1="396" y1="714" x2="432" y2="714" class="arrow-line" marker-end="url(#arrow)"/>
 
   <rect x="432" y="686" width="150" height="56" rx="8" class="td-fill"/>
-  <text x="507" y="702" text-anchor="middle" dominant-baseline="central" class="td-text" font-size="14">Propose</text>
-  <text x="507" y="720" text-anchor="middle" dominant-baseline="central" class="td-sub">spec edit draft</text>
+  <text x="507" y="702" text-anchor="middle" dominant-baseline="central" class="td-text" font-size="14">On-demand audit</text>
+  <text x="507" y="720" text-anchor="middle" dominant-baseline="central" class="td-sub">explicit / close opt-in</text>
   <text x="507" y="734" text-anchor="middle" dominant-baseline="central" class="td-sub">evolve-suggest</text>
 
   <line x1="582" y1="714" x2="618" y2="714" class="arrow-line" marker-end="url(#arrow)"/>
 
   <rect x="618" y="686" width="150" height="56" rx="8" class="td-fill"/>
-  <text x="693" y="702" text-anchor="middle" dominant-baseline="central" class="td-text" font-size="14">Apply</text>
-  <text x="693" y="720" text-anchor="middle" dominant-baseline="central" class="td-sub">archive v{n} → v{n+1}</text>
+  <text x="693" y="702" text-anchor="middle" dominant-baseline="central" class="td-text" font-size="14">Approved apply</text>
+  <text x="693" y="720" text-anchor="middle" dominant-baseline="central" class="td-sub">user approval required</text>
   <text x="693" y="734" text-anchor="middle" dominant-baseline="central" class="td-sub">evolve-apply · rollback</text>
 
-  <!-- TextGrad backend node -->
+  <!-- Audit state note -->
   <rect x="432" y="760" width="150" height="44" rx="6" fill="rgb(253, 245, 240)" stroke="rgb(153, 60, 29)" stroke-width="0.7" stroke-dasharray="5 3"/>
-  <text x="507" y="776" text-anchor="middle" dominant-baseline="central" class="td-text" font-size="12">TextGrad backend  ★ NEW</text>
-  <text x="507" y="792" text-anchor="middle" dominant-baseline="central" class="td-sub" font-size="10">engines · td_layer · propose · backward · trace · buffer</text>
+  <text x="507" y="776" text-anchor="middle" dominant-baseline="central" class="td-text" font-size="12">Pending flags + derived V^L</text>
+  <text x="507" y="792" text-anchor="middle" dominant-baseline="central" class="td-sub" font-size="10">audit may draft one proposal</text>
   <line x1="507" y1="742" x2="507" y2="758" stroke="rgb(153, 60, 29)" stroke-width="0.7" stroke-dasharray="3 2" marker-end="url(#arrow)"/>
 
   <!-- Side store panel -->
   <rect x="795" y="686" width="105" height="118" rx="6" fill="rgb(252, 247, 242)" stroke="rgb(153, 60, 29)" stroke-width="0.5"/>
   <text x="847" y="700" text-anchor="middle" dominant-baseline="central" class="td-text" font-size="11">td-nl/ store</text>
-  <text x="847" y="718" text-anchor="middle" dominant-baseline="central" class="td-sub" font-size="10">feedback-log.md</text>
-  <text x="847" y="732" text-anchor="middle" dominant-baseline="central" class="td-sub" font-size="10">value-function.md</text>
-  <text x="847" y="746" text-anchor="middle" dominant-baseline="central" class="td-sub" font-size="10">skill-values/</text>
-  <text x="847" y="760" text-anchor="middle" dominant-baseline="central" class="td-sub" font-size="10">history/ (archive)</text>
-  <text x="847" y="778" text-anchor="middle" dominant-baseline="central" class="td-sub" font-size="10">textgrad_backend/</text>
-  <text x="847" y="792" text-anchor="middle" dominant-baseline="central" class="td-sub" font-size="10">fixtures · smoke</text>
+  <text x="847" y="718" text-anchor="middle" dominant-baseline="central" class="td-sub" font-size="10">feedback-log flags</text>
+  <text x="847" y="732" text-anchor="middle" dominant-baseline="central" class="td-sub" font-size="10">pending proposals</text>
+  <text x="847" y="746" text-anchor="middle" dominant-baseline="central" class="td-sub" font-size="10">skill-values/ Q^L</text>
+  <text x="847" y="760" text-anchor="middle" dominant-baseline="central" class="td-sub" font-size="10">derived V^L</text>
+  <text x="847" y="778" text-anchor="middle" dominant-baseline="central" class="td-sub" font-size="10">history/ archive</text>
 
   <!-- Feedback loop -->
   <path d="M693 742 L693 820 L135 820 L135 742" fill="none" class="loop-line" marker-end="url(#arrow)"/>
-  <text x="410" y="836" text-anchor="middle" class="t-annot">Skills improve over sessions — specs v{n} → v{n+1} with natural-language TD updates</text>
+  <text x="410" y="836" text-anchor="middle" class="t-annot">Signals update Q online; audits and spec edits occur only on request and approval</text>
 
   <!-- ═══ Divider 3 ═══ -->
   <line x1="30" y1="856" x2="890" y2="856" class="divider"/>
@@ -310,23 +309,22 @@
 
   <!-- CLAUDE.md protocol -->
   <rect x="390" y="892" width="150" height="68" rx="8" class="inf-fill"/>
-  <text x="465" y="908" text-anchor="middle" dominant-baseline="central" class="inf-text" font-size="13">CLAUDE.md protocol</text>
-  <text x="465" y="926" text-anchor="middle" dominant-baseline="central" class="inf-sub">root · skills/ · memory/</text>
-  <text x="465" y="940" text-anchor="middle" dominant-baseline="central" class="inf-sub">checklists/ · scripts/</text>
+  <text x="465" y="908" text-anchor="middle" dominant-baseline="central" class="inf-text" font-size="13">Runtime protocols</text>
+  <text x="465" y="926" text-anchor="middle" dominant-baseline="central" class="inf-sub">CLAUDE.md · AGENTS.md</text>
+  <text x="465" y="940" text-anchor="middle" dominant-baseline="central" class="inf-sub">same evidence-first state model</text>
 
   <!-- _shared docs -->
   <rect x="555" y="892" width="170" height="68" rx="8" class="inf-fill"/>
-  <text x="640" y="908" text-anchor="middle" dominant-baseline="central" class="inf-text" font-size="13">_shared/ protocols  (6)</text>
+  <text x="640" y="908" text-anchor="middle" dominant-baseline="central" class="inf-text" font-size="13">_shared/ protocols  (4)</text>
   <text x="640" y="924" text-anchor="middle" dominant-baseline="central" class="inf-sub">checklist-engine · memory-tiers</text>
   <text x="640" y="938" text-anchor="middle" dominant-baseline="central" class="inf-sub">evolve-cycle · git-conventions</text>
-  <text x="640" y="952" text-anchor="middle" dominant-baseline="central" class="inf-sub">codex-contract · cross-model-review</text>
 
-  <!-- Claude Code runtime -->
+  <!-- Independent single-model runtimes -->
   <rect x="740" y="892" width="150" height="68" rx="8" class="inf-fill"/>
-  <text x="815" y="908" text-anchor="middle" dominant-baseline="central" class="inf-text" font-size="13">Claude Code runtime</text>
-  <text x="815" y="924" text-anchor="middle" dominant-baseline="central" class="inf-sub">SKILL.md auto-load</text>
-  <text x="815" y="938" text-anchor="middle" dominant-baseline="central" class="inf-sub">scripts/install-skills.sh</text>
-  <text x="815" y="952" text-anchor="middle" dominant-baseline="central" class="inf-sub">codex / claude track</text>
+  <text x="815" y="908" text-anchor="middle" dominant-baseline="central" class="inf-text" font-size="13">Claude / Codex</text>
+  <text x="815" y="924" text-anchor="middle" dominant-baseline="central" class="inf-sub">independent runtimes</text>
+  <text x="815" y="938" text-anchor="middle" dominant-baseline="central" class="inf-sub">runtime-specific manifests</text>
+  <text x="815" y="952" text-anchor="middle" dominant-baseline="central" class="inf-sub">materialized SKILL.md</text>
 
   <!-- Infra → up connections (subtle) -->
   <line x1="125" y1="892" x2="125" y2="862" stroke="rgb(55, 138, 221)" stroke-width="0.5" opacity="0.5"/>
@@ -338,6 +336,6 @@
   <!-- ═══ Bottom banner ═══ -->
   <rect x="40" y="988" width="850" height="52" rx="6" fill="rgb(234, 243, 222)" stroke="rgb(59, 109, 17)" stroke-width="0.5"/>
   <text x="465" y="1006" text-anchor="middle" dominant-baseline="central" class="t-banner">Natural language → intent routing → structured research workflow → checklist update → skill evolution</text>
-  <text x="465" y="1025" text-anchor="middle" dominant-baseline="central" fill="rgb(59, 109, 17)" font-family="'Anthropic Sans', -apple-system, system-ui, sans-serif" font-size="11">Every firing emits G2 feedback · session-close aggregates G1 · Propose drafts spec edits · Apply archives v{n} with rollback</text>
+  <text x="465" y="1025" text-anchor="middle" dominant-baseline="central" fill="rgb(59, 109, 17)" font-family="'Anthropic Sans', -apple-system, system-ui, sans-serif" font-size="11">Reward signal → online Q update · explicit audit → optional proposal · user approval → archived edit or rollback</text>
 
 </svg>

@@ -201,11 +201,11 @@ next touched. Old specs are recoverable from git history.
 | **Migrate to harness (tranche 1)** ✅ | `status-report`, `checklist-status` (read/report path) | `python -m harness status` — deterministic aggregation of ledger, runs, external run records, checklist counts |
 | **Merge (tranche 1)** ✅ | `checklist-create/update/verify/status` → `checklist`; `memory-write/retrieve/consolidate/forget` → `memory` | one mode-based SKILL.md each |
 | **Retire (tranche 1)** ✅ | `general-research` (fallback = default behavior) | router fallback row removed |
-| **Merge (tranche 2)** ✅ | `theory-*` (5) → `theory`; `proof-*` (5) → `proof`; `writing-outline/draft/polish` → `writing`; `idea-discover/refine` + `research-explore` → `idea`; `plan-milestone` → `plan-suggest` (milestone mode); `design-converge` → `decision-analyze` (converge mode); `progress-capture` → `checklist` update mode; `paper-compare`/`paper-index` → `paper-read` modes. (`writing-review` and `idea-verify` stay standalone — they ship codex-track variants; fold them in tranche 3 together with the code-family decision.) | mode-based skills |
+| **Merge (tranche 2)** ✅ | `theory-*` (5) → `theory`; `proof-*` (5) → `proof`; `writing-outline/draft/polish` → `writing`; `idea-discover/refine` + `research-explore` → `idea`; `plan-milestone` → `plan-suggest` (MILESTONE mode); `design-converge` → `decision-analyze` (CONVERGE mode); `progress-capture` → `checklist` UPDATE mode; `paper-compare`/`paper-index` → `paper-read` modes. `writing-review` and `idea-verify` stay standalone because peer review and novelty verification are independent judgment boundaries, each directly executable by both supported runtimes. | mode-based skills plus standalone runtime-specific manifests |
 | **Migrate to harness (tranche 2)** ✅ | `experiment-monitor` polling core (PID liveness incl. --ssh, log tails, OOM/NaN/traceback patterns, last metric line) | `harness ext-status`; skill rewritten as a thin judgment wrapper (interprets reports, owns yaml status writes) |
-| **Migrate to harness (tranche 3)** | `experiment-run` dispatch mechanics (ssh/tmux launch, record writing); `experiment-dse` config-list generation; `paper-compile` build pipeline | harness subcommands / scripts; skills keep only the judgment (contract gate, GPU choice rationale, search-strategy choice) |
-| **Merge or defer to superpowers (tranche 3)** | `code-branch/roadmap/implement/review/debug/commit` (overlap with superpowers TDD/debugging/worktrees; codex-track variants complicate — decide with user) | TBD |
-| **Keep as skills** | `session-open`, `session-close`, `skill-feedback`, `evolve-suggest`, `evolve-apply`, `plan-suggest`, `decision-analyze`, `experiment-plan`, `experiment-run` (thin), `experiment-analyze`, `idea`, `theory`, `proof`, `writing`, `paper-read`, `paper-lit-search`, `paper-illustrate`, `paper-figure`, `paper-art`, `checklist`, `memory`, `project-integrate` | judgment-heavy |
+| **Migrate to deterministic tooling (tranche 3)** ✅ | `experiment-run` dispatch mechanics (ssh/tmux launch, record writing); `paper-compile` build pipeline | `harness ext-launch` and `scripts/compile_paper.sh`; skills retain judgment such as the contract gate and GPU selection |
+| **Merge code scaffolding (tranche 3)** ✅ | `code-branch/roadmap/debug/commit` → `code`; keep `code-implement` and `code-review` standalone | BRANCH / ROADMAP / DEBUG / COMMIT share one state machine; implementation and review remain separate responsibility boundaries with direct manifests for both runtimes |
+| **Keep as skills** | `session-open`, `session-close`, `paper-lit-search`, `paper-read`, `paper-assets`, `writing`, `writing-review`, `theory`, `proof`, `idea`, `idea-verify`, `plan-suggest`, `decision-analyze`, `experiment-plan`, `experiment-dse`, `experiment-run`, `experiment-monitor`, `experiment-analyze`, `code`, `code-implement`, `code-review`, `checklist`, `memory`, `skill-feedback`, `evolve-suggest`, `evolve-apply`, `project-integrate` | judgment-heavy or stable responsibility boundary |
 
 Tranche 1 executed 2026-07-13: 57 → 49 skills
 (−4 checklist +1, −4 memory +1, −`status-report`, −`general-research`).
@@ -229,12 +229,14 @@ missed `skill-feedback`; corrected here):
   launch), builds the nohup/ssh launch line, captures the PID, writes
   `logs/experiments/{exp_id}.yaml` with the contract embedded. The skill
   keeps only judgment (GPU selection, env verification).
-- Settled principle: **skills shipping codex-track variants stay standalone**
-  (`code-implement`, `code-review`, `writing-review`, `idea-verify`) —
-  merging them would either break the `--codex-track` installer mechanism or
-  force duplicating each merged body across two variant files. Folding them
-  further would require dropping the codex track or a variant-composition
-  installer feature; user decision if the count should go below 27.
+- Settled principle: **independent responsibilities with direct manifests for
+  both runtimes stay standalone**. `code-implement` owns TDD execution,
+  `code-review` owns completed-diff review, `writing-review` owns peer-review
+  evaluation, and `idea-verify` owns source-backed novelty validation. Each is
+  directly executable by the active runtime through its runtime-specific
+  single-model manifest. Merging them into their aggregate neighbors would
+  blur those handoff boundaries and duplicate two runtime-native bodies inside
+  a larger mode-based skill.
 
 Final inventory (27): session-open, session-close, paper-lit-search,
 paper-read, paper-assets, writing, writing-review, theory, proof, idea,

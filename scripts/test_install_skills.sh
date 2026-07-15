@@ -147,6 +147,18 @@ test_claude_runtime_does_not_leak_openai_variant() {
   assert_not_exists "$target/mixed/SKILL.openai.md"
 }
 
+test_codex_runtime_ignores_claude_track_only_skills() {
+  local source="$TMP_DIR/track-only-source"
+  local out="$TMP_DIR/track-only-list.out"
+
+  mkdir -p "$source/track-only"
+  printf '%s\n' '---' 'name: track-only' 'description: Claude track only.' '---' >"$source/track-only/SKILL.claude.md"
+  cp "$source/track-only/SKILL.claude.md" "$source/track-only/SKILL.codex.md"
+
+  run_install --runtime codex --source "$source" --list >"$out"
+  assert_no_grep 'track-only' "$out"
+}
+
 test_codex_runtime_single_model() {
   local target="$TMP_DIR/codex"
   run_install --runtime codex --target "$target" --force --only code-implement
@@ -167,6 +179,13 @@ test_codex_runtime_installed_surface_is_clean() {
   assert_not_exists "$target/fey-r/.git"
   assert_no_tree_grep 'Claude Code|\.claude|CLAUDE\.md|/codex:|mcp__codex__codex' "$target"
   assert_valid_skill_frontmatter_tree "$target"
+  local legacy consolidated
+  for legacy in code-implement code-review code-roadmap idea-refine idea-verify paper-art writing-review; do
+    assert_not_exists "$target/$legacy"
+  done
+  for consolidated in checklist code idea memory paper-assets proof theory writing; do
+    assert_dir "$target/$consolidated"
+  done
 }
 
 test_codex_runtime_rejects_codex_track() {
@@ -248,6 +267,7 @@ test_default_claude_track_a
 test_claude_track_b_preserved
 test_claude_runtime_ignores_openai_only_skills
 test_claude_runtime_does_not_leak_openai_variant
+test_codex_runtime_ignores_claude_track_only_skills
 test_codex_runtime_single_model
 test_codex_runtime_installed_surface_is_clean
 test_codex_runtime_rejects_codex_track

@@ -3,6 +3,11 @@
 > Self-Evolved Research: a behavior-driven research collaboration framework.
 > Skills trigger via intent detection — no explicit commands needed.
 
+This is the Claude runtime's root protocol. Claude directly performs every
+SER responsibility using the installed runtime-specific single-model
+manifests; no second runtime is required for implementation, review, writing,
+judgment, or verification.
+
 **First principle.** Every piece of research work serves one transition:
 
 ```
@@ -253,9 +258,9 @@ rows first. Each skill lives in `skills/{name}/SKILL.md` (auto-loaded on fire).
 **Code**
 | Pattern | Skill |
 |---|---|
-| Branch / roadmap / debug / commit | `code` (branch / roadmap / debug / commit modes) |
-| Implement / add feature | `code-implement` (codex-track variants) |
-| Review code changes | `code-review` (codex-track variants) → `code` (commit mode) |
+| Branch / roadmap / debug / commit | `code` (BRANCH / ROADMAP / DEBUG / COMMIT modes) |
+| Implement / add feature | `code-implement` (Claude-native single-model manifest) |
+| Review code changes | `code-review` (Claude-native single-model manifest) → `code` (COMMIT mode) |
 
 **Deliverable tracking & memory**
 | Pattern | Skill |
@@ -339,9 +344,8 @@ artifact `- [x] {desc} | artifact: outputs/{path}`. Stages: `[ ]`→`[x]`→`[v]
 ├── harness/               # Minimal research harness (contract, rundir, cli, loop)
 ├── configs/               # Experiment configs (each with a contract block)
 ├── runs/                  # Self-contained run records
-├── tests/                 # Harness + regression tests (= baseline check)
 ├── Checklist.md           # Deliverable tracking root (L0) + checklists/
-├── skills/                # 57 SER skills + _shared/ + external/ + td-nl/
+├── skills/                # 27 SER skills + _shared/ + external/ + td-nl/
 ├── scripts/               # session_context.sh, evolve_textgrad.py, utilities
 ├── memory/                # Durable non-scientific context (3-tier)
 ├── experiments/           # Experiment code (tic_tac_toe/ = legacy + invariant science)

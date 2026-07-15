@@ -7,8 +7,8 @@ description: >-
   idea → committable proposal with problem statement, differentiation table,
   falsifier, and minimal validation experiment). Absorbs the former
   research-explore / idea-discover / idea-refine skills — those names now refer
-  to modes here. Novelty checking stays a separate skill (`idea-verify`,
-  codex-track variants). Triggers on "brainstorm ideas", "what are the possible
+  to modes here. Novelty checking stays a separate skill (`idea-verify`) with
+  runtime-specific single-model manifests. Triggers on "brainstorm ideas", "what are the possible
   directions?", "find research gaps", "refine this idea", "make this concrete",
   "细化想法", or "park this idea" / "add to backlog" / "not now" for off-scope
   ideas.
@@ -16,9 +16,9 @@ description: >-
 
 # idea
 
-Novelty checking is the separate `idea-verify` skill (codex-track variants).
-Chain: EXPLORE (wide) → DISCOVER (scored) → `idea-verify` → REFINE (sharp) →
-`experiment-plan`.
+Novelty checking is the separate `idea-verify` skill, executed directly by the
+active single-model runtime. Chain: EXPLORE (wide) → DISCOVER (scored) →
+`idea-verify` → REFINE (sharp) → `experiment-plan`.
 
 ## Mode: EXPLORE — "what are the possible directions?", open-ended
 

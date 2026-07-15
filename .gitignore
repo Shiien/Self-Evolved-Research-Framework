@@ -25,4 +25,6 @@ ser-v*.zip
 _trash/
 .claude/worktrees/
 .claude/skills/
+/docs/superpowers/
+/tests/
 outputs/

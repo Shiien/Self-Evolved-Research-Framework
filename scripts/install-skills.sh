@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# install-skills.sh — Install bundled Claude Code skills into a .claude/skills directory
+# install-skills.sh — Install bundled skills for one selected model runtime
 #
-# Auto-discovers every directory containing a SKILL.md under the source tree
-# (default: ./skills), and installs each one into a target skills directory
-# (default: ./.claude/skills) as either a copy or a symlink.
+# Auto-discovers every directory containing a runtime-neutral or runtime-native
+# skill manifest under the source tree (default: ./skills), then installs each
+# skill for either Claude or Codex. Each runtime selects its own native manifest.
 #
-# Directories without a SKILL.md (e.g. skills/_shared, skills/td-nl) are ignored:
-# they are SER internal infrastructure, not Claude Code skills.
+# Directories without a manifest accepted by the selected runtime (e.g.
+# skills/_shared and skills/td-nl) are ignored as SER infrastructure.
 #
 # Safe to run multiple times. Existing installs are skipped unless --force.
 #
@@ -18,35 +18,23 @@
 #   -h, --help            Show this help and exit
 #   -n, --dry-run         Print actions without modifying the filesystem
 #   -f, --force           Overwrite existing skills at the target
-#   -l, --link            Symlink instead of copying (Claude runtime only;
-#                         Codex runtime requires a materialized copy)
+#   -l, --link            Symlink runtime-neutral SKILL.md skills for Claude.
+#                         Claude-native manifests and all Codex skills are
+#                         materialized as copies.
 #   -s, --source DIR      Source directory to scan (default: ./skills)
 #   -t, --target DIR      Target directory            (default depends on runtime)
-#       --user            Shortcut for --target ~/.claude/skills (global install)
+#       --user            Shortcut for --target ~/.claude/skills (Claude only)
 #       --runtime R       Select runtime: 'claude' (default) or 'codex'.
-#                         'claude' installs to ./.claude/skills and supports
-#                         --codex-track claude|codex.
-#                         'codex' installs to ./.agents/skills, selects
-#                         SKILL.openai.md > SKILL.md, and rejects --codex-track.
+#                         Claude installs to ./.claude/skills and selects
+#                         SKILL.claude.md > SKILL.md.
+#                         Codex installs to ./.agents/skills and selects
+#                         SKILL.openai.md > SKILL.md.
 #       --only PATTERNS   Install only skills matching PATTERNS (comma-separated,
 #                         glob supported; e.g. 'paper-*,code-*').
 #                         Repeatable; union of all patterns is kept.
 #       --exclude PATTERNS  Skip skills matching PATTERNS (comma-separated, glob
 #                         supported; e.g. 'proof-*,theory-generalize'). Applied
 #                         after --only. Repeatable; union of all patterns.
-#       --codex-track T   Select codex-augmented variants: 'claude' (default) or 'codex'.
-#                         'claude' installs the upstream, Claude-only variant of every
-#                         skill that ships a codex variant — no external deps required.
-#                         'codex' installs the Codex-augmented variant where the skill
-#                         adds an extra Codex pass (code-implement: /codex:rescue for
-#                         medium/large; code-review: /codex:review second reviewer;
-#                         writing-review: 3rd Codex peer reviewer; idea-verify: 4th
-#                         evidence source via `mcp__codex__codex`).
-#                         For skills that ship track variants (code-implement, code-review,
-#                         writing-review, idea-verify), the matching SKILL.T.md is
-#                         materialized as SKILL.md. 'codex' strictly preflights
-#                         codex login status, /codex:review, and mcp__codex__codex.
-#                         Superpowers is recommended for Codex but is not preflighted.
 #       --list            List discovered skills (after --only/--exclude filters)
 #                         and exit without installing
 #       --no-color        Disable ANSI color output
@@ -56,9 +44,8 @@
 #   --only paper-read,writing-draft        # pick two skills
 #   --exclude 'theory-*,proof-*'           # drop theory + proof families
 #   --only 'paper-*' --exclude paper-index # paper-* minus paper-index
-#   --codex-track codex                    # install Codex-augmented variants for every
-#                                          # skill that ships them (code + research family)
-#   --only 'code-*' --codex-track claude   # install only code family, upstream Claude-only variants
+#   --runtime claude --only 'code-*'       # Claude-native code skills
+#   --runtime codex --only 'code-*'        # Codex-native code skills
 #
 # Exit codes:
 #   0  success (or nothing to do)
@@ -83,11 +70,9 @@ LIST_ONLY=0
 USE_COLOR=1
 ONLY_PATTERNS=()
 EXCLUDE_PATTERNS=()
-CODEX_TRACK="claude"
-CODEX_TRACK_SET=0
 
 # --- Helpers -------------------------------------------------------------------
-CODEX_FORBIDDEN_MARKERS='Claude Code|\.claude|CLAUDE\.md|/codex:|mcp__codex__codex'
+CODEX_FORBIDDEN_MARKERS='Claude Code|\.claude|CLAUDE\.md|/co''dex:|mcp__co''dex__codex'
 
 if [ -t 1 ]; then :; else USE_COLOR=0; fi
 
@@ -115,16 +100,63 @@ log_warn()    { echo "$(color yellow '[!]') $*" >&2; }
 log_error()   { echo "$(color red    '[x]') $*" >&2; }
 
 audit_codex_skill_file() {
-  local name="$1" file="$2"
+  local name="$1" file="$2" relative_file="$3"
   if [ "$RUNTIME" != "codex" ]; then
     return 0
   fi
-  if grep -Eq "$CODEX_FORBIDDEN_MARKERS" "$file"; then
-    log_error "$name: Codex runtime coupling found in $(basename "$file")"
-    grep -En "$CODEX_FORBIDDEN_MARKERS" "$file" >&2 || true
+  if grep -IEq -- "$CODEX_FORBIDDEN_MARKERS" "$file"; then
+    log_error "$name: Codex runtime coupling found in $relative_file"
+    grep -IEn -- "$CODEX_FORBIDDEN_MARKERS" "$file" >&2 || true
     return 1
   fi
   return 0
+}
+
+codex_skill_path_is_copied() {
+  local relative_file="$1" selected_file="$2"
+  case "$relative_file" in
+    "$selected_file"|SKILL.md|SKILL.claude.md|SKILL.openai.md)
+      return 1 ;;
+    README.md|.gitignore|.git|.git/*)
+      return 1 ;;
+    *)
+      return 0 ;;
+  esac
+}
+
+audit_codex_skill_tree() {
+  local name="$1" src="$2" selected_file="$3"
+  local file relative_file failed=0
+  if [ "$RUNTIME" != "codex" ]; then
+    return 0
+  fi
+
+  # The selected runtime manifest is materialized as SKILL.md, so audit it
+  # explicitly under its source-relative name.
+  if ! audit_codex_skill_file "$name" "$src/$selected_file" "$selected_file"; then
+    failed=1
+  fi
+
+  # Audit every other file that survives the Codex copy. Root-level runtime
+  # manifests are either selected above or omitted, while fey-r's
+  # repository-only auxiliaries are removed from Codex installations. Reject
+  # copied symlinks so the installed skill remains self-contained.
+  while IFS= read -r -d '' file; do
+    relative_file="${file#"$src/"}"
+    if ! codex_skill_path_is_copied "$relative_file" "$selected_file"; then
+      continue
+    fi
+    if [ -L "$file" ]; then
+      log_error "$name: Codex runtime cannot copy symlink $relative_file; skills must be self-contained"
+      failed=1
+      continue
+    fi
+    if ! audit_codex_skill_file "$name" "$file" "$relative_file"; then
+      failed=1
+    fi
+  done < <(find "$src" \( -type f -o -type l \) -print0)
+
+  [ "$failed" -eq 0 ]
 }
 
 copy_runtime_aux_excludes() {
@@ -172,13 +204,6 @@ while [ $# -gt 0 ]; do
                     IFS=',' read -r -a _tmp <<<"$2"
                     EXCLUDE_PATTERNS+=("${_tmp[@]}")
                     shift 2 ;;
-    --codex-track)  [ $# -ge 2 ] || { log_error "--codex-track requires an argument"; exit 1; }
-                    CODEX_TRACK_SET=1
-                    case "$2" in
-                      claude|codex) CODEX_TRACK="$2" ;;
-                      *) log_error "--codex-track must be 'claude' or 'codex' (got: $2)"; exit 1 ;;
-                    esac
-                    shift 2 ;;
     --list)         LIST_ONLY=1; shift ;;
     --no-color)     USE_COLOR=0; shift ;;
     --)             shift; break ;;
@@ -188,10 +213,6 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "$RUNTIME" = "codex" ]; then
-  if [ "$CODEX_TRACK_SET" -eq 1 ]; then
-    log_error "--codex-track is only valid with --runtime claude; --runtime codex is single-model."
-    exit 1
-  fi
   if [ "$USER_TARGET" -eq 1 ]; then
     log_error "--user is not supported with --runtime codex in this version; use --target explicitly."
     exit 1
@@ -226,89 +247,11 @@ if [ ! -d "$SOURCE_DIR" ]; then
   exit 2
 fi
 
-# --- Codex preflight (only runs when --codex-track codex) ---------------------
-# Track B (codex) strictly requires:
-#   1. `codex login status` reports an authenticated session (non-interactive
-#      check — `/codex:setup` cannot be used here because it opens a TUI and
-#      fails in non-TTY shells).
-#   2. `/codex:review` skill available (used by code-review Track B).
-#   3. `mcp__codex__codex` MCP server reachable (used by writing-review and
-#      idea-verify Track B for cross-model review).
-#
-# NOTE: Superpowers is NOT preflighted here. Superpowers is a Codex-side plugin
-# (installed inside Codex itself, not in Claude Code's skill tree), so there is
-# no reliable way to probe it from this Claude-side installer. It is strongly
-# recommended for best results on the Codex track — see README for the install
-# link.
-#
-# Any failure aborts installation with a clear remediation message.
-preflight_codex() {
-  local problems=0
-
-  log_info "Codex track preflight — checking dependencies…"
-
-  # 1. Codex CLI + authenticated login.
-  # We use `codex login status` instead of `codex /codex:setup` because the
-  # latter launches an interactive TUI that fails in non-TTY shells with
-  # "stdin is not a terminal". `codex login status` is a non-interactive
-  # subcommand that prints the current login state and exits with 0 when
-  # authenticated.
-  if ! command -v codex >/dev/null 2>&1; then
-    log_error "codex CLI not found on PATH. Install Codex before using --codex-track codex."
-    problems=$((problems + 1))
-  else
-    local login_out=""
-    if ! login_out="$(codex login status 2>&1)" || ! printf '%s' "$login_out" | grep -qiE 'logged in|authenticated'; then
-      log_error "Codex CLI is not logged in. Run \`codex login\` (ChatGPT or API key) and retry."
-      problems=$((problems + 1))
-    fi
-  fi
-
-  # 2. /codex:review availability
-  if ! command -v codex >/dev/null 2>&1; then
-    : # already reported above
-  elif ! codex /codex:review --help >/dev/null 2>&1 && ! codex help 2>/dev/null | grep -q 'codex:review'; then
-    log_error "/codex:review skill not available. Install it before using --codex-track codex."
-    problems=$((problems + 1))
-  fi
-
-  # 3. mcp__codex__codex MCP server — best-effort probe via `claude mcp`.
-  # We skip hard failure if claude CLI isn't available (Codex CLI alone is
-  # enough for /codex:* skills). When `claude mcp` is present, list servers
-  # and look for the codex entry.
-  if command -v claude >/dev/null 2>&1; then
-    local mcp_list=""
-    if mcp_list="$(claude mcp list 2>/dev/null)"; then
-      if ! printf '%s' "$mcp_list" | grep -qiE 'codex'; then
-        log_error "mcp__codex__codex MCP server not registered. Run \`claude mcp add codex <command>\` or equivalent before using --codex-track codex."
-        problems=$((problems + 1))
-      fi
-    else
-      log_warn "Could not query \`claude mcp list\` — skipping mcp__codex__codex preflight. Ensure it is registered for writing-review / idea-verify cross-model reviews."
-    fi
-  else
-    log_warn "claude CLI not on PATH — skipping mcp__codex__codex preflight. Ensure it is registered for writing-review / idea-verify cross-model reviews."
-  fi
-
-  if [ "$problems" -gt 0 ]; then
-    log_error "Codex preflight failed with $problems issue(s). Fix the above or rerun with --codex-track claude."
-    exit 1
-  fi
-  log_ok "Codex preflight passed."
-}
-
-if [ "$CODEX_TRACK" = "codex" ] && [ "$LIST_ONLY" -eq 0 ] && [ "$DRY_RUN" -eq 0 ]; then
-  preflight_codex
-fi
-
 # --- Discovery -----------------------------------------------------------------
-# Find every directory that contains a SKILL.md OR a track-variant
-# (SKILL.claude.md / SKILL.codex.md). Store (name, abs_path) pairs.
-# "name" is the leaf directory name — Claude Code indexes skills by that.
+# Find every directory that contains a manifest accepted by the selected
+# runtime. Store (name, abs_path) pairs. "name" is the leaf directory name.
 #
-# For directories containing ONLY track variants (no plain SKILL.md), the
-# directory is a track-variant skill: install_one will materialize the chosen
-# variant as SKILL.md at the target.
+# Runtime-native manifests are materialized as SKILL.md at the target.
 #
 # We deliberately use `-print0` + null-delim read to be safe with unusual names.
 discover_skills() {
@@ -323,13 +266,13 @@ discover_skills() {
         -print0 | sort -z
     else
       find "$SOURCE_DIR" -type f \
-        \( -name 'SKILL.md' -o -name 'SKILL.claude.md' -o -name 'SKILL.codex.md' \) \
+        \( -name 'SKILL.md' -o -name 'SKILL.claude.md' \) \
         -print0 | sort -z
     fi
   )
 
-  # Dedupe by directory — a single dir may contain both SKILL.claude.md and
-  # SKILL.codex.md, but it is still one skill.
+  # Dedupe by directory — a directory may contain a neutral and a native
+  # manifest, but it is still one skill.
   local seen_dirs=""
   for skill_md in "${roots[@]}"; do
     local skill_dir name
@@ -426,11 +369,7 @@ log_info "Target : $TARGET_DIR"
 log_info "Mode   : $MODE$( [ "$DRY_RUN" -eq 1 ] && echo ' (dry-run)' )"
 log_info "Force  : $( [ "$FORCE" -eq 1 ] && echo yes || echo no )"
 log_info "Runtime: $RUNTIME"
-if [ "$RUNTIME" = "claude" ]; then
-  log_info "Track  : $CODEX_TRACK"
-else
-  log_info "Track  : single-model"
-fi
+log_info "Model  : single-model"
 echo
 
 if [ "$DRY_RUN" -eq 0 ]; then
@@ -446,9 +385,9 @@ install_one() {
   local name="$1" src="$2"
   local dst="${TARGET_DIR}/${name}"
   local action=""
-  local has_plain=0 has_variant=0 has_any_variant=0 variant_file="" selected_file="" materialize_variant=0 variant_context=""
+  local has_plain=0 has_any_variant=0 selected_file="" materialize_variant=0 variant_context=""
   [ -f "$src/SKILL.md" ] && has_plain=1
-  if [ -f "$src/SKILL.claude.md" ] || [ -f "$src/SKILL.codex.md" ] || [ -f "$src/SKILL.openai.md" ]; then
+  if [ -f "$src/SKILL.claude.md" ] || [ -f "$src/SKILL.openai.md" ]; then
     has_any_variant=1
   fi
 
@@ -456,7 +395,6 @@ install_one() {
     variant_context="runtime=codex"
     if [ -f "$src/SKILL.openai.md" ]; then
       selected_file="SKILL.openai.md"
-      has_variant=1
       materialize_variant=1
     elif [ "$has_plain" -eq 1 ]; then
       selected_file="SKILL.md"
@@ -465,27 +403,15 @@ install_one() {
       return 1
     fi
   else
-    variant_context="track=$CODEX_TRACK"
-    if [ -f "$src/SKILL.${CODEX_TRACK}.md" ]; then
-      variant_file="SKILL.${CODEX_TRACK}.md"
-      has_variant=1
-    fi
-    if [ "$has_plain" -eq 0 ] && [ "$has_variant" -eq 0 ]; then
-      if [ -f "$src/SKILL.claude.md" ]; then
-        variant_file="SKILL.claude.md"
-        has_variant=1
-        log_warn "$name: no SKILL.${CODEX_TRACK}.md; falling back to SKILL.claude.md"
-      elif [ -f "$src/SKILL.codex.md" ]; then
-        variant_file="SKILL.codex.md"
-        has_variant=1
-        log_warn "$name: no SKILL.${CODEX_TRACK}.md; falling back to SKILL.codex.md"
-      fi
-    fi
-    if [ "$has_variant" -eq 1 ] && [ "$has_plain" -eq 0 ]; then
-      selected_file="$variant_file"
+    variant_context="runtime=claude"
+    if [ -f "$src/SKILL.claude.md" ]; then
+      selected_file="SKILL.claude.md"
       materialize_variant=1
-    else
+    elif [ "$has_plain" -eq 1 ]; then
       selected_file="SKILL.md"
+    else
+      log_error "$name: Claude runtime requires SKILL.claude.md or runtime-neutral SKILL.md"
+      return 1
     fi
   fi
   if [ "$selected_file" = "SKILL.md" ] && [ "$has_any_variant" -eq 1 ]; then
@@ -503,7 +429,7 @@ install_one() {
     action="install"
   fi
 
-  if ! audit_codex_skill_file "$name" "$src/$selected_file"; then
+  if ! audit_codex_skill_tree "$name" "$src" "$selected_file"; then
     return 1
   fi
 
@@ -530,12 +456,12 @@ install_one() {
     mkdir -p "$dst"
     if command -v rsync >/dev/null 2>&1; then
       rsync -a --delete \
-        --exclude='SKILL.claude.md' --exclude='SKILL.codex.md' --exclude='SKILL.openai.md' \
+        --exclude='SKILL.claude.md' --exclude='SKILL.openai.md' \
         $(copy_runtime_aux_excludes) \
         "$src/" "$dst/"
     else
       cp -R "$src/." "$dst/"
-      rm -f "$dst/SKILL.claude.md" "$dst/SKILL.codex.md" "$dst/SKILL.openai.md"
+      rm -f "$dst/SKILL.claude.md" "$dst/SKILL.openai.md"
       remove_runtime_aux_files "$dst"
     fi
     cp "$src/$selected_file" "$dst/SKILL.md"

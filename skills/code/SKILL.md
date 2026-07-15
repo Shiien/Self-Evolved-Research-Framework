@@ -1,13 +1,13 @@
 ---
 name: code
-description: Code-workflow scaffolding in one mode-based skill — BRANCH (git branch/worktree isolation with exp|feat|fix prefixes), ROADMAP (step-by-step implementation roadmap saved to docs/implement_roadmap/ that code-implement executes), DEBUG (rigid four-phase Reproduce → Isolate → Root Cause → Verify, with the three-failed-fixes-means-architecture rule), COMMIT (pre-commit verification, prefixed message, explicit staging, checklist SHA annotation). Absorbs the former code-branch / code-roadmap / code-debug / code-commit skills — those names now refer to modes here. Implementation and review stay separate skills (`code-implement`, `code-review`; codex-track variants). Triggers on "start a branch", "create a worktree", "write the implementation roadmap", "debug this", "test fails", "commit these changes".
+description: Code-workflow scaffolding in one mode-based skill — BRANCH (git branch/worktree isolation with exp|feat|fix prefixes), ROADMAP (step-by-step implementation roadmap saved to docs/implement_roadmap/ that code-implement executes), DEBUG (rigid four-phase Reproduce → Isolate → Root Cause → Verify, with the three-failed-fixes-means-architecture rule), COMMIT (pre-commit verification, prefixed message, explicit staging, checklist SHA annotation). Absorbs the former code-branch / code-roadmap / code-debug / code-commit skills — those names now refer to modes here. Implementation and review stay separate skills (`code-implement`, `code-review`) with runtime-specific single-model manifests. Triggers on "start a branch", "create a worktree", "write the implementation roadmap", "debug this", "test fails", "commit these changes".
 ---
 
 # code
 
-Writing the code is `code-implement`; reviewing it is `code-review` (both
-ship codex-track variants). Chain: BRANCH → ROADMAP → `code-implement` →
-DEBUG (as needed) → `code-review` → COMMIT.
+Writing the code is `code-implement`; reviewing it is `code-review`. Both are
+executed directly by the active single-model runtime. Chain: BRANCH → ROADMAP
+→ `code-implement` → DEBUG (as needed) → `code-review` → COMMIT.
 
 **Shared context**: Read `skills/_shared/git-conventions.md` for branch
 naming, worktree pattern, commit prefixes, staging rules, and the
@@ -30,8 +30,8 @@ Report the branch/worktree to the user and to downstream modes.
    `methodology/approach.md`, identify the test framework + exact test
    command.
 2. Save `docs/implement_roadmap/YYYY-MM-DD-{name}.md` — **every section
-   mandatory** (this format is the execution contract `code-implement`
-   Track A/B both consume):
+   mandatory** (this format is the execution contract consumed by
+   `code-implement` on either runtime):
    - `## Goal` — one sentence, end state.
    - `## Context` — project, language/framework, **test command verbatim**,
      key files with one-line whys.

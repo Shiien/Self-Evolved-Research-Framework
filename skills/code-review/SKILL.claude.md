@@ -1,15 +1,15 @@
 ---
 name: code-review
-description: Review code changes after `code-implement` completes. For roadmap-driven (medium/large) tasks, verifies plan compliance — Done Criteria, per-step Acceptance, Constraints violations, Unplanned changes. For small tasks, performs a quick check (diff read + tests pass + change matches user intent). Produces `docs/code_reviews/{name}.md`. Triggers after `code-implement` or when user asks "review these changes", "check the implementation".
+description: Use when code changes are ready for review before commit, after implementation completes, or when the user asks to inspect a diff for correctness and scope.
 ---
 
-# code-review (Track A — Claude single-reviewer)
+# code-review
 
 **Trigger**: Code changes are ready for review after `code-implement` completes (small or medium/large), before commit.
 
-**Shared context**: None (Track A). The roadmap file — if present — carries the spec to check against.
+**Shared context**: None. The roadmap file — if present — carries the spec to check against.
 
-**Track**: A. Installed via `--codex-track claude`. Track B installs a dual-reviewer variant that adds Codex as a second independent reviewer.
+**Runtime**: The active Claude session performs the review directly.
 
 ---
 
@@ -66,7 +66,8 @@ Save to `docs/code_reviews/quick-YYYY-MM-DD-{short-name}.md` only if the task is
    - Were any forbidden files modified (`.claude/`, `skills/`, etc.)?
    - Were any unplanned dependencies added?
    - Were files outside the roadmap scope modified? If yes, was it justified in the step descriptions?
-4. **Goal check**: does the total change, read as a whole, achieve what the Goal line of the roadmap promises?
+4. **Code quality**: inspect logic, edge cases, error handling, security, maintainability, and test adequacy.
+5. **Goal check**: does the total change, read as a whole, achieve what the Goal line of the roadmap promises?
 
 ### Output
 
@@ -78,7 +79,7 @@ Save to `docs/code_reviews/YYYY-MM-DD-{roadmap-name}.md`:
 **Roadmap**: `docs/implement_roadmap/{path}`
 **Base commit**: {SHA}
 **Test suite**: {PASS / FAIL with details}
-**Reviewer**: Claude (Track A)
+**Reviewer**: active Claude session
 
 ## Done Criteria
 - [x] {criterion 1} — PASS
@@ -90,6 +91,9 @@ Save to `docs/code_reviews/YYYY-MM-DD-{roadmap-name}.md`:
 |------|-------|------------|--------|-------|
 | 1 | {title} | {criterion} | PASS | — |
 | 2 | {title} | {criterion} | FAIL | {what's wrong} |
+
+## Code Quality Findings
+- {none, or prioritized findings with file and line evidence}
 
 ## Constraint Violations
 - {none, or list violations}
@@ -106,16 +110,14 @@ Save to `docs/code_reviews/YYYY-MM-DD-{roadmap-name}.md`:
 
 ## Step 4 — Deliver the verdict
 
-- **PASS** → suggest `code` (commit mode).
+- **PASS** → suggest `code` (COMMIT mode).
 - **FAIL** → surface the report to the user. Do NOT auto-loop back to `code-implement` (SER has no automatic fix cycle). User decides next action: manual fix, re-run `code-implement`, redesign roadmap, or commit with known issues.
 
 ---
 
 ## Architectural Note
 
-Track A uses a single reviewer (Claude main session) against the roadmap. Claude's role is **plan compliance** — does the implementation actually achieve the research goal the roadmap stated.
-
-Track B adds a second independent reviewer (`/codex:review`) whose role is **code quality** — logic, edge cases, security, maintainability. The two roles do not overlap. Track A loses the second perspective; Track A users who want code-quality review must run it manually via external tools.
+The active session reviews both plan compliance and code quality: whether the implementation achieves the roadmap goal, satisfies its constraints, handles logic and edge cases, and has adequate test evidence.
 
 ---
 
@@ -125,12 +127,12 @@ Track B adds a second independent reviewer (`/codex:review`) whose role is **cod
 [code-review / claude] Review complete — {PASS | FAIL}
   Mode: {quick | full}
   Report: {docs/code_reviews/... | console}
-  Next: the code skill's commit mode (if PASS) or user decision (if FAIL)
+  Next: `code` (COMMIT mode) if PASS, otherwise user decision
 ```
 
 **Inputs**: `git diff {base_sha}` + `git status` + roadmap file (if any) + test command output
 **Outputs**: `docs/code_reviews/YYYY-MM-DD-{name}.md` (full mode) or console (quick mode)
 **Token**: ~3-8K
 **Composition**:
-- PASS → `code` (commit mode)
+- PASS → `code` (COMMIT mode)
 - FAIL → surface to user, no automatic chaining

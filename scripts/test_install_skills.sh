@@ -4,6 +4,8 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 INSTALL="${REPO_ROOT}/scripts/install-skills.sh"
 TMP_DIR="$(mktemp -d)"
+SINGLE_MODEL_SKILLS=(code-implement code-review idea-verify writing-review)
+FORBIDDEN_SINGLE_MODEL_MARKERS='--codex-track|/codex:review|/codex:rescue|mcp__codex__codex'
 
 cleanup() {
   rm -rf "$TMP_DIR"
@@ -29,21 +31,38 @@ assert_not_exists() {
 
 assert_grep() {
   local pattern="$1" file="$2"
-  grep -Eq "$pattern" "$file" || fail "pattern not found in $file: $pattern"
+  grep -Eq -- "$pattern" "$file" || fail "pattern not found in $file: $pattern"
 }
 
 assert_no_grep() {
   local pattern="$1" file="$2"
-  if grep -Eq "$pattern" "$file"; then
+  if grep -Eq -- "$pattern" "$file"; then
     fail "forbidden pattern found in $file: $pattern"
   fi
 }
 
 assert_no_tree_grep() {
   local pattern="$1" root="$2"
-  if grep -RInE "$pattern" "$root"; then
+  if grep -RInE -- "$pattern" "$root"; then
     fail "forbidden pattern found under $root: $pattern"
   fi
+}
+
+assert_single_model_skills_installed() {
+  local target="$1" runtime="$2" skill source_variant
+  for skill in "${SINGLE_MODEL_SKILLS[@]}"; do
+    assert_file "$target/$skill/SKILL.md"
+    assert_not_exists "$target/$skill/SKILL.claude.md"
+    assert_not_exists "$target/$skill/SKILL.codex.md"
+    assert_not_exists "$target/$skill/SKILL.openai.md"
+    case "$runtime" in
+      claude) source_variant="$REPO_ROOT/skills/$skill/SKILL.claude.md" ;;
+      codex) source_variant="$REPO_ROOT/skills/$skill/SKILL.openai.md" ;;
+      *) fail "unsupported runtime for single-model assertion: $runtime" ;;
+    esac
+    cmp -s "$source_variant" "$target/$skill/SKILL.md" ||
+      fail "installed $skill/SKILL.md does not match $source_variant"
+  done
 }
 
 assert_valid_skill_frontmatter_tree() {
@@ -89,22 +108,89 @@ run_install() {
   bash "$INSTALL" --no-color "$@"
 }
 
-test_default_claude_track_a() {
-  local target="$TMP_DIR/claude-a"
-  run_install --target "$target" --force --only code-implement --codex-track claude
-  assert_file "$target/code-implement/SKILL.md"
-  assert_not_exists "$target/code-implement/SKILL.claude.md"
-  assert_not_exists "$target/code-implement/SKILL.codex.md"
-  assert_grep 'Track A' "$target/code-implement/SKILL.md"
+test_source_tree_has_no_cross_model_tracks() {
+  local skill
+  for skill in "${SINGLE_MODEL_SKILLS[@]}"; do
+    assert_not_exists "$REPO_ROOT/skills/$skill/SKILL.codex.md"
+  done
+  assert_not_exists "$REPO_ROOT/skills/_shared/codex-contract.md"
+  assert_not_exists "$REPO_ROOT/skills/_shared/cross-model-review.md"
 }
 
-test_claude_track_b_preserved() {
-  local target="$TMP_DIR/claude-b"
-  local out="$TMP_DIR/claude-b.out"
-  run_install --target "$target" --dry-run --force --only code-implement --codex-track codex >"$out"
-  assert_not_exists "$target"
-  assert_grep 'track=codex' "$out"
-  assert_grep 'SKILL\.codex\.md .* SKILL\.md' "$out"
+test_codex_runtime_audits_copied_auxiliary_files() {
+  local source="$TMP_DIR/audit-aux-source"
+  local target="$TMP_DIR/audit-aux-target"
+  local out="$TMP_DIR/audit-aux.out"
+  local err="$TMP_DIR/audit-aux.err"
+
+  mkdir -p "$source/audit-aux"
+  printf '%s\n' \
+    '---' \
+    'name: audit-aux' \
+    'description: Clean Codex-native test skill.' \
+    '---' \
+    '# Audit auxiliary files' >"$source/audit-aux/SKILL.openai.md"
+  printf '%s\n' 'This auxiliary file requires Claude Code.' >"$source/audit-aux/NOTES.md"
+
+  if run_install --runtime codex --source "$source" --target "$target" \
+    --only audit-aux >"$out" 2>"$err"; then
+    fail "expected Codex runtime audit to reject a copied auxiliary file"
+  fi
+  assert_not_exists "$target/audit-aux"
+  assert_grep 'NOTES\.md' "$err"
+  assert_grep 'Claude Code' "$err"
+}
+
+test_codex_runtime_rejects_copied_auxiliary_symlinks() {
+  local source="$TMP_DIR/audit-symlink-source"
+  local target="$TMP_DIR/audit-symlink-target"
+  local payload="$TMP_DIR/audit-symlink-payload.txt"
+  local out="$TMP_DIR/audit-symlink.out"
+  local err="$TMP_DIR/audit-symlink.err"
+
+  mkdir -p "$source/audit-symlink"
+  printf '%s\n' \
+    '---' \
+    'name: audit-symlink' \
+    'description: Clean Codex-native symlink audit test skill.' \
+    '---' \
+    '# Audit auxiliary symlinks' >"$source/audit-symlink/SKILL.openai.md"
+  printf '%s\n' 'This external payload requires Claude Code.' >"$payload"
+  ln -s "$payload" "$source/audit-symlink/NOTES.md"
+
+  if run_install --runtime codex --source "$source" --target "$target" \
+    --only audit-symlink >"$out" 2>"$err"; then
+    fail "expected Codex runtime audit to reject a copied auxiliary symlink"
+  fi
+  assert_not_exists "$target/audit-symlink"
+  assert_grep 'symlink' "$err"
+  assert_grep 'NOTES\.md' "$err"
+}
+
+test_single_model_surface_omits_cross_model_controls() {
+  local help_out="$TMP_DIR/install-help.out"
+  run_install --help >"$help_out"
+  assert_no_grep "$FORBIDDEN_SINGLE_MODEL_MARKERS" "$help_out"
+  assert_no_grep "$FORBIDDEN_SINGLE_MODEL_MARKERS" "$INSTALL"
+  assert_no_tree_grep "$FORBIDDEN_SINGLE_MODEL_MARKERS" "$REPO_ROOT/skills"
+}
+
+test_claude_runtime_single_model() {
+  local target="$TMP_DIR/claude"
+  run_install --runtime claude --target "$target" --force \
+    --only code-implement,code-review,idea-verify,writing-review
+  assert_single_model_skills_installed "$target" claude
+  assert_no_tree_grep "$FORBIDDEN_SINGLE_MODEL_MARKERS" "$target"
+  assert_no_tree_grep 'Codex|codex' "$target"
+  assert_valid_skill_frontmatter_tree "$target"
+}
+
+test_default_runtime_is_claude() {
+  local target="$TMP_DIR/default-claude"
+  run_install --target "$target" --force \
+    --only code-implement,code-review,idea-verify,writing-review
+  assert_single_model_skills_installed "$target" claude
+  assert_no_tree_grep 'Codex|codex' "$target"
 }
 
 test_claude_runtime_ignores_openai_only_skills() {
@@ -147,16 +233,15 @@ test_claude_runtime_does_not_leak_openai_variant() {
   assert_not_exists "$target/mixed/SKILL.openai.md"
 }
 
-test_codex_runtime_ignores_claude_track_only_skills() {
-  local source="$TMP_DIR/track-only-source"
-  local out="$TMP_DIR/track-only-list.out"
+test_codex_runtime_ignores_claude_only_skills() {
+  local source="$TMP_DIR/claude-only-source"
+  local out="$TMP_DIR/claude-only-list.out"
 
-  mkdir -p "$source/track-only"
-  printf '%s\n' '---' 'name: track-only' 'description: Claude track only.' '---' >"$source/track-only/SKILL.claude.md"
-  cp "$source/track-only/SKILL.claude.md" "$source/track-only/SKILL.codex.md"
+  mkdir -p "$source/claude-only"
+  printf '%s\n' '---' 'name: claude-only' 'description: Claude-only skill.' '---' >"$source/claude-only/SKILL.claude.md"
 
   run_install --runtime codex --source "$source" --list >"$out"
-  assert_no_grep 'track-only' "$out"
+  assert_no_grep 'claude-only' "$out"
 }
 
 test_codex_runtime_single_model() {
@@ -179,26 +264,14 @@ test_codex_runtime_installed_surface_is_clean() {
   assert_not_exists "$target/fey-r/.git"
   assert_no_tree_grep 'Claude Code|\.claude|CLAUDE\.md|/codex:|mcp__codex__codex' "$target"
   assert_valid_skill_frontmatter_tree "$target"
+  assert_single_model_skills_installed "$target" codex
   local legacy consolidated
-  for legacy in code-implement code-review code-roadmap idea-refine idea-verify paper-art writing-review; do
+  for legacy in code-roadmap idea-refine paper-art; do
     assert_not_exists "$target/$legacy"
   done
   for consolidated in checklist code idea memory paper-assets proof theory writing; do
     assert_dir "$target/$consolidated"
   done
-}
-
-test_codex_runtime_rejects_codex_track() {
-  local target="$TMP_DIR/invalid"
-  local out="$TMP_DIR/ser-invalid.out"
-  local err="$TMP_DIR/ser-invalid.err"
-  if run_install --runtime codex --target "$target" --dry-run --codex-track codex --only code-implement >"$out" 2>"$err"; then
-    fail "expected --runtime codex --codex-track codex to fail"
-  fi
-  grep -Eq -- '--codex-track.*runtime codex|runtime codex.*--codex-track' "$err" || {
-    cat "$err" >&2
-    fail "missing invalid runtime/track error"
-  }
 }
 
 test_codex_runtime_rejects_link() {
@@ -263,14 +336,17 @@ test_codex_runtime_default_target() {
   assert_grep 'would (install|update) .*experiment-run' "$out"
 }
 
-test_default_claude_track_a
-test_claude_track_b_preserved
+test_source_tree_has_no_cross_model_tracks
+test_codex_runtime_audits_copied_auxiliary_files
+test_codex_runtime_rejects_copied_auxiliary_symlinks
+test_single_model_surface_omits_cross_model_controls
+test_claude_runtime_single_model
+test_default_runtime_is_claude
 test_claude_runtime_ignores_openai_only_skills
 test_claude_runtime_does_not_leak_openai_variant
-test_codex_runtime_ignores_claude_track_only_skills
+test_codex_runtime_ignores_claude_only_skills
 test_codex_runtime_single_model
 test_codex_runtime_installed_surface_is_clean
-test_codex_runtime_rejects_codex_track
 test_codex_runtime_rejects_link
 test_codex_runtime_audits_selected_skill_source
 test_codex_runtime_skips_existing_target_before_audit

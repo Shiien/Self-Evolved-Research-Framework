@@ -11,8 +11,6 @@ and durable state is written to explicit project files.
 - Treat `AGENTS.md` as the root behavioral protocol.
 - Use the active Codex session as the single model for implementation, review,
   writing, judgment, and verification.
-- Do not require another model, a platform-specific hook, or an external
-  delegation command to complete an SER workflow.
 - Preserve user work. Never remove untracked files or overwrite populated state
   without explicit authorization.
 

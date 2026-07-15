@@ -319,7 +319,7 @@ discover_skills() {
   done < <(
     if [ "$RUNTIME" = "codex" ]; then
       find "$SOURCE_DIR" -type f \
-        \( -name 'SKILL.md' -o -name 'SKILL.claude.md' -o -name 'SKILL.codex.md' -o -name 'SKILL.openai.md' \) \
+        \( -name 'SKILL.md' -o -name 'SKILL.openai.md' \) \
         -print0 | sort -z
     else
       find "$SOURCE_DIR" -type f \

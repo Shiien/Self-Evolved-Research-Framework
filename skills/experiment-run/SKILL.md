@@ -1,81 +1,57 @@
 ---
 name: experiment-run
-description: Launch a training / experiment run — pre-flight GPU check, metadata generation, ssh dispatch to the best available machine, and write logs/experiments/{exp_id}.yaml. Triggers on "run an experiment", "launch training", "test this on GPU", or when the user provides a training script/command to execute.
+description: Launch a training / experiment run. The skill owns the judgment — contract gate, GPU selection across the cluster, environment verification — and delegates the mechanical dispatch (nohup/ssh launch, PID capture, record writing with the contract embedded) to `python -m harness ext-launch`, which refuses to launch without a valid contract. For experiments inside the SER repo, delegates to `python -m harness run`. Triggers on "run an experiment", "launch training", "test this on GPU", or when the user provides a training script/command to execute.
 ---
 
 # experiment-run
 
-**Trigger**: User asks to "run an experiment", "launch training", "test this on GPU", or provides a training script to execute.
+**Trigger**: User asks to "run an experiment", "launch training", "test this
+on GPU", or provides a training script to execute.
 
 **Process**:
-1. **Pre-flight checks**:
-   - Run `bash ~/.claude/skills/monitor-gpu-utilization/scripts/gpu_status.sh` to get GPU availability
-   - Identify best GPU: prefer remote machines, >20 GB free, <10% utilization
-   - Verify conda environment exists on target machine
-   - Verify the experiment script/command is valid (basic syntax check)
-2. **Generate experiment metadata**:
-   ```yaml
-   exp_id: "exp-{YYYYMMDD}-{NNN}"    # sequential within day
-   command: "{full command}"
-   machine: "{hostname}"
-   gpu: "{CUDA_VISIBLE_DEVICES value}"
-   started: "YYYY-MM-DD HH:MM:SS"
-   status: "launched"
-   working_dir: "{path}"
-   log_file: "/tmp/{exp_id}.log"
-   config_snapshot: "{key hyperparams or config overrides}"
+
+1. **Contract gate (hard requirement)**: locate this run's experiment
+   contract — `experiments/{exp_name}/plan.md § Contracts`, the ledger
+   entry's config, or user-provided. None exists → DO NOT LAUNCH: draft the
+   7 fields with the user (≤10 lines; anything non-trivial → chain
+   `experiment-plan`). Save it to a YAML file (or point at the config whose
+   `contract:` block holds it) — `ext-launch` validates and embeds it, so
+   evaluation criteria are frozen at launch.
+   *SER-repo experiments*: skip dispatch entirely — `python -m harness run
+   configs/<exp>.yaml`.
+
+2. **Pre-flight judgment**:
+   - GPU availability:
+     `bash ~/.claude/skills/monitor-gpu-utilization/scripts/gpu_status.sh` —
+     prefer remote machines, >20 GB free, <10% util, 1 job per GPU.
+   - Verify the target machine's python interpreter actually has the needed
+     framework (per-machine paths in user CLAUDE.md — do NOT assume a
+     shared env path).
+   - Sanity-check the command (module importable, config exists); smoke
+     test first when the change is untested (see `run-experiment`
+     user-level skill).
+
+3. **Dispatch via the harness** (never hand-roll the ssh/nohup line):
+   ```bash
+   python -m harness ext-launch \
+     --command "<python-path> -m <entry> <overrides>" \
+     --machine remote-13 --ip 172.16.51.13 --gpu 0 \
+     --workdir "~/codeforshare/<repo>" \
+     --contract <contract-or-config>.yaml
    ```
-3. **Deploy and launch**:
-   - For remote: `ssh hsshi@{IP} "cd {working_dir} && CUDA_VISIBLE_DEVICES={gpu} nohup {python} {command} > /tmp/{exp_id}.log 2>&1 &"`
-   - For local: `CUDA_VISIBLE_DEVICES={gpu} nohup {command} > /tmp/{exp_id}.log 2>&1 &`
-   - Capture PID from launch
-4. **Save experiment log**: Write metadata to `logs/experiments/{exp_id}.yaml`
-5. **Confirm launch**: Output 3-line status
-   ```
-   [EXP] {exp_id} launched on {machine} GPU:{gpu}
-   Command: {abbreviated command}
-   Monitor: experiment-monitor will auto-check, or run manually
-   ```
-6. **Notify** (if autonomy.auto_proceed enabled): Call `scripts/notify.py` with launch info
+   It validates the contract, launches with `CUDA_VISIBLE_DEVICES`, captures
+   the PID, and writes `logs/experiments/{exp_id}.yaml` (status `launched`,
+   contract embedded). `--dry-run` to preview.
 
-**Inputs**: Experiment command/script + optional config overrides
-**Outputs**: `logs/experiments/{exp_id}.yaml` + running process on GPU
-**Token**: ~2-4K
-**Composition**: Launch complete → suggest or auto-trigger `experiment-monitor` after delay
+4. **Confirm + hand off**: report the 3-line launch status; chain
+   `experiment-monitor` (which polls via `harness ext-status`). Remember:
+   `status: completed` means the process finished — the experiment is
+   complete only after `experiment-analyze` judges it against the embedded
+   contract.
 
-## Experiment Log Format: `logs/experiments/{exp_id}.yaml`
+5. **Notify** if `autonomy.auto_proceed` is enabled (`scripts/notify.py`).
 
-```yaml
-exp_id: "exp-20260316-001"
-command: "python -m option_exp.entry.run_gymnax +alg=pqn_craftax"
-machine: "remote-3"
-ip: "172.16.51.3"
-gpu: "0"
-pid: 12345
-working_dir: "~/codeforshare/purejaxql"
-log_file: "/tmp/exp-20260316-001.log"
-python_path: "/home/hsshi/anaconda3/envs/torch/bin/python"
-config_snapshot:
-  alg: "pqn_craftax"
-  num_seeds: 3
-started: "2026-03-16 14:30:00"
-ended: null                          # set on completion/failure
-status: "launched"                   # launched | running | completed | failed
-last_checked: null
-latest_metrics: {}
-final_metrics: {}
-error_summary: null
-```
-
-## Autonomy Integration
-
-When `config.yaml § autonomy.auto_proceed` is true:
-- `experiment-run` launches without confirmation (after pre-flight passes)
-- `experiment-monitor` auto-polls at intervals (composition chain handles scheduling)
-- On completion → auto-chains to `experiment-analyze`
-- On failure → notifies and pauses for human review (unless `autonomy.auto_retry: true`)
-
-## TD-NL Integration
-
-Tracked via `skills/td-nl/skill-values/experiment-run.md`.
-Key metrics for TD assessment: did pre-flight catch issues? did launch succeed? was GPU selection optimal?
+**Inputs**: command + contract + cluster state
+**Outputs**: running process + `logs/experiments/{exp_id}.yaml` (written by ext-launch)
+**Token**: ~1-3K (dispatch itself is free)
+**Composition**: launch → `experiment-monitor` → `experiment-analyze`.

@@ -51,7 +51,7 @@ Default to **Small**. When uncertain, ask.
 | `/codex:setup` runtime check fails | **Claude** (graceful degradation — see Step 4e) |
 | All other Medium/Large changes | **Codex** |
 
-If size = Medium/Large and no roadmap exists yet, invoke `code-roadmap` first, then return here.
+If size = Medium/Large and no roadmap exists yet, invoke `code` (roadmap mode) first, then return here.
 
 ---
 
@@ -166,5 +166,5 @@ After Codex (or fallback Claude) completes all steps:
 **Token**: ~3-15K (small) / ~4-12K Claude-side for prompt + post-processing (Codex-side usage is separate)
 **Composition**:
 - Completes → `code-review`
-- Codex reports a step blocked, cause unclear → `code-debug`
+- Codex reports a step blocked, cause unclear → `code` (debug mode)
 - Codex unavailable → fallback to Claude (same skill, Step 4e)

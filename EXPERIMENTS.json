@@ -1,0 +1,34 @@
+{
+  "experiments": [
+    {
+      "id": "exp-000",
+      "question": "Does the migrated harness pipeline reproduce the legacy cycle semantics deterministically (scripted engine, shim evolve, guarded apply)?",
+      "config": "configs/ttt_smoke.yaml",
+      "status": "complete",
+      "run": "20260713-131118-ttt-smoke",
+      "verdict": "success",
+      "note": "free; deterministic; validates the harness itself",
+      "started_at": "2026-07-13T13:11:18+0800",
+      "confirmed": true,
+      "finished_at": "2026-07-13T13:11:18+0800"
+    },
+    {
+      "id": "exp-001",
+      "question": "Does the restored v1 spec still draw against perfect play (baseline re-measurement, no evolution)?",
+      "config": "configs/ttt_baseline_eval.yaml",
+      "status": "planned",
+      "run": null,
+      "verdict": null,
+      "note": "costs ~12-30 haiku calls; run deliberately"
+    },
+    {
+      "id": "exp-002",
+      "question": "Does real-engine online evolution with guarded apply improve held-out performance vs the exp-001 baseline?",
+      "config": "configs/ttt_online_evolve.yaml",
+      "status": "planned",
+      "run": null,
+      "verdict": null,
+      "note": "AFTER exp-001: set success_metric baseline_run to the exp-001 run id; costs ~100-250 haiku calls"
+    }
+  ]
+}

@@ -103,10 +103,17 @@ def main(argv=None) -> int:
         default=120.0,
         help="Per-call timeout (sec) for the Claude Code CLI engine.",
     )
+    # Optional path overrides so a harness run can operate on its own
+    # sandboxed state. Defaults preserve the original hard-coded behavior.
+    ap.add_argument("--feedback-log", type=Path, default=FEEDBACK_LOG)
+    ap.add_argument("--skills-root", type=Path, default=SKILLS_ROOT)
+    ap.add_argument("--skill-values-dir", type=Path, default=SKILL_VALUES_DIR)
+    ap.add_argument("--value-function", type=Path, default=VALUE_FUNCTION)
     args = ap.parse_args(argv)
 
-    if not FEEDBACK_LOG.exists():
-        print(f"[evolve-textgrad] missing {FEEDBACK_LOG}", file=sys.stderr)
+    feedback_log = args.feedback_log
+    if not feedback_log.exists():
+        print(f"[evolve-textgrad] missing {feedback_log}", file=sys.stderr)
         return 2
 
     if args.no_engine:
@@ -118,10 +125,10 @@ def main(argv=None) -> int:
 
     try:
         results = run_backward(
-            feedback_log=FEEDBACK_LOG,
-            skills_root=SKILLS_ROOT,
-            skill_values_dir=SKILL_VALUES_DIR,
-            value_function_file=VALUE_FUNCTION,
+            feedback_log=feedback_log,
+            skills_root=args.skills_root,
+            skill_values_dir=args.skill_values_dir,
+            value_function_file=args.value_function,
             gamma=args.gamma,
             engine=engine,
         )
@@ -134,7 +141,7 @@ def main(argv=None) -> int:
         return 1
 
     if args.apply_proposal and not args.dry_run:
-        block = write_proposal(FEEDBACK_LOG, results)
+        block = write_proposal(feedback_log, results)
         if block is None:
             print("[evolve-textgrad] no proposal written (no hard-strength skills)")
         else:

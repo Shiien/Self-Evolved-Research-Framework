@@ -1,0 +1,38 @@
+# exp-001: Baseline evaluation of the RESTORED play-tic-tac-toe spec vs
+# minimax (no evolution). Establishes the confirm.* reference numbers that
+# evolution experiments must beat. Costs real LLM calls (haiku).
+experiment: ttt_cycle
+name: ttt-baseline-eval
+seed: 0
+
+contract:
+  hypothesis: >
+    The restored v1 spec still draws against perfect play (cycle-001 observed
+    draw_rate 1.0 at n=2) with no forfeits, i.e. the baseline works.
+  change: "None — pure evaluation of the restored baseline spec."
+  controls: "No evolution (evolve_enabled: false); same prompts as legacy arena."
+  success_metric:
+    metric: confirm.draw_rate
+    op: ">="
+    value: 0.8
+  failure_condition:
+    metric: confirm.forfeit_rate
+    op: ">="
+    value: 0.2
+  required_diagnostics:
+    - games-confirm.jsonl
+    - engine-calls.jsonl
+    - result.json
+  budget:
+    max_llm_calls: 80
+    max_minutes: 45
+
+params:
+  mode: batch
+  games_per_side: 0          # no dev games — this run is confirmation only
+  confirm_games_per_side: 3  # 3 as X + 3 as O with the (unchanged) spec
+  evolve_enabled: false
+  engine: claude-cli
+  model: haiku
+  timeout: 180.0
+  sandbox: true

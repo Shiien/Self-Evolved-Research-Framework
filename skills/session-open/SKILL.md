@@ -1,6 +1,6 @@
 ---
 name: session-open
-description: Runs silently at the start of every conversation. Reads config.yaml, the most recent session log, memory/MEMORY.md, and Checklist.md, then prints a one-screen SER status banner (project, phase, item counts, V^L, last session, next milestone). Fires before any other processing — triggered by conversation start, not by user words.
+description: Runs silently at the start of every conversation. Formats the deterministic context injected by the SessionStart hook (scripts/session_context.sh) — research question, experiment ledger, last run verdict, git state — into a one-screen SER status banner, then proceeds directly to the user's request. Fires before any other processing — triggered by conversation start, not by user words.
 ---
 
 # session-open
@@ -8,24 +8,28 @@ description: Runs silently at the start of every conversation. Reads config.yaml
 **Trigger**: Every conversation start (automatic, before any other processing).
 
 **Process**:
-1. Silently read: `config.yaml` (project status, milestone), last `logs/digest/*.yaml`, `logs/digest/SUMMARY.md`
-2. Read: `memory/MEMORY.md` + execute `memory-retrieve` for active context
-3. Read: `skills/td-nl/value-function.md` (current V^L)
-4. Read: `Checklist.md` (project progress root — compute done/total item counts)
-5. Output status banner:
+1. The `SessionStart` hook has already injected deterministic context between
+   `=== SER session context ===` markers: `[question]`, `[ledger]`,
+   `[next-planned]`, `[last-run]`, `[git]`, `[memory]`. **Do not re-read the
+   files it covers** (`RESEARCH_STATE.md`, `EXPERIMENTS.json`, `runs/`).
+2. Read `memory/MEMORY.md` pointers only if the user's request plausibly
+   touches remembered context (`memory` retrieve mode on demand, not by default).
+3. Output the status banner:
    ```
-   [SER] {project_name} | Phase {X} | [{done}/{total} items] | V^L={overall}/10
-   Last session ({date}): {1-line summary from last log}
-   Next milestone: {milestone_goal} ({days_remaining}d)
+   [SER] {project} | Q: {current research question, ≤1 line}
+   Ledger: {counts} | last run: {id} → {verdict or state}
+   Next: {next planned experiment id+question, or "plan one"}
    ```
-6. If milestone <= 3 days away, append: `** MILESTONE APPROACHING **`
-7. Proceed immediately to user's request — no questions asked
+4. Append warnings only when true:
+   - `[!] baseline unverified` if the last run failed or `[git]` shows a dirty
+     tree with harness/test changes
+   - `[!] no research question set` if RESEARCH_STATE.md is missing/empty
+5. Proceed immediately to the user's request — no questions asked.
 
-**Inputs**: config.yaml, last digest log, SUMMARY.md, Checklist.md
-**Outputs**: Status banner (inline, not saved)
-**Token**: ~1K
-**Composition**: None (always first)
+**Fallback** (hook context absent — e.g. hooks disabled): run
+`bash scripts/session_context.sh` once and format its output as above.
 
-**Strategy auto-selection**:
-- If many untracked git changes detected: note in banner `({N} untracked changes)`
-- If last session was >7 days ago: add `(long gap — consider /review for catch-up)`
+**Inputs**: hook-injected context (free)
+**Outputs**: status banner (inline, not saved)
+**Token**: ~0.3K
+**Composition**: none (always first)

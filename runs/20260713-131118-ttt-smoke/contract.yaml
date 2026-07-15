@@ -1,0 +1,27 @@
+hypothesis: 'The harness pipeline (self-play -> grading -> G2 -> evolve -> guarded
+  apply -> held-out confirmation) runs end to end deterministically and the scripted
+  engine never forfeits.
+
+  '
+change: None (pipeline validation, not a scientific experiment).
+controls: Scripted first-legal-move engine; deterministic shim evolve.
+success_metric:
+  metric: dev.forfeits
+  op: <=
+  value: 0
+failure_condition:
+  metric: final_spec_valid
+  op: ==
+  value: false
+confirmation:
+  metric: confirm.forfeit_rate
+  op: ==
+  value: 0.0
+required_diagnostics:
+- games.jsonl
+- engine-calls.jsonl
+- result.json
+budget:
+  max_llm_calls: 0
+  max_engine_calls: 100
+  max_minutes: 5

@@ -1,0 +1,40 @@
+{
+  "mode": "online-evolve",
+  "params": {
+    "mode": "online-evolve",
+    "games": 2,
+    "games_per_side": 1,
+    "confirm_games_per_side": 1,
+    "evolve_enabled": true,
+    "engine": "scripted-first-legal",
+    "evolve_engine": "none",
+    "model": "haiku",
+    "timeout": 180.0,
+    "sandbox": true
+  },
+  "edits_applied": 0,
+  "apply_rejected_invalid": 2,
+  "dev": {
+    "games": 2,
+    "forfeits": 0,
+    "decisive_wins": 2,
+    "draws": 0,
+    "total_moves": 14,
+    "total_mistakes": 6,
+    "clean_games": 0,
+    "mistake_rate": 0.42857142857142855
+  },
+  "confirm": {
+    "draw": 0,
+    "win": 0,
+    "loss": 2,
+    "forfeit": 0,
+    "total": 2,
+    "draw_rate": 0.0,
+    "forfeit_rate": 0.0
+  },
+  "final_spec_valid": true,
+  "engine_calls": 20,
+  "llm_calls": 0,
+  "wall_seconds": 0.09
+}

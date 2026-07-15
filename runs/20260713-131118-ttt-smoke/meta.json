@@ -1,0 +1,20 @@
+{
+  "run_id": "20260713-131118-ttt-smoke",
+  "experiment": "ttt_cycle",
+  "seed": 0,
+  "contract_sha256": "bdd62afd90de577c5079b558596b8b0626cfeaf8a271150b2fa537d7180b0655",
+  "git": {
+    "sha": "2a689a39a114ce9042c98f95141c1599f9d16971",
+    "dirty": true
+  },
+  "python": "3.12.4 | packaged by Anaconda, Inc. | (main, Jun 18 2024, 15:12:24) [GCC 11.2.0]",
+  "platform": "Linux-6.8.0-134-generic-x86_64-with-glibc2.39",
+  "hostname": "server16",
+  "user": "shs",
+  "argv": [
+    "/home/shs/codeforshare/Self-Evolved-Research-Framework/harness/__main__.py",
+    "loop",
+    "step"
+  ],
+  "created_at": "2026-07-13T13:11:18+0800"
+}

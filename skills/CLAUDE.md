@@ -9,7 +9,7 @@ when a skill's description matches the current conversation intent.
 
 ```
 skills/
-  {skill-name}/SKILL.md      # 57 SER skills
+  {skill-name}/SKILL.md      # 27 SER skills (consolidated from 57 — see REFACTOR_PLAN.md §7)
   _shared/*.md               # Cross-cutting reference docs (not skills themselves)
   external/{name}/SKILL.md   # External skills (git submodules)
   td-nl/                     # Skill evolution infrastructure
@@ -20,56 +20,61 @@ skills/
 need them instruct Claude to Read them on demand. `_shared/` has no `SKILL.md`
 so it's ignored by `scripts/install-skills.sh`.
 
-## Skill index (57 SER + 1 external)
+## Skill index (27 SER + 1 external)
 
 ### Session lifecycle
-- `session-open`, `session-close`
+- `session-open` (formats the SessionStart hook's deterministic context — `scripts/session_context.sh`)
+- `session-close` (evidence-first: RESEARCH_STATE.md + EXPERIMENTS.json; digest optional)
 
 ### Paper reading
-- `paper-lit-search` (discovery — arXiv + Semantic Scholar + local), `paper-read` (triage or Fey-R), `paper-compare`, `paper-index`
+- `paper-lit-search` (discovery — arXiv + Semantic Scholar + local)
+- `paper-read` — reading (Standard triage or Deep/Fey-R) + COMPARE + INDEX modes (absorbed `paper-compare`/`paper-index`, 2026-07-13)
 - `external/fey-r` — deep Feynman-method paper reading
-- Chain: `paper-lit-search → paper-read → paper-compare` / `paper-index`
+- Chain: `paper-lit-search → paper-read`
 
 ### Paper figures & build
-- `paper-illustrate` — structural diagrams (architecture, pipeline, flow) via TikZ or SVG
-- `paper-figure` — data-driven plots (line, bar, scatter, heatmap, table) from experiment results; script preserved under `paper/figures/scripts/`
-- `paper-art` — decorative / identity visuals (pixel art, project mascot, README hero); saved to `outputs/visuals/`
-- `paper-compile` — full LaTeX build pipeline (pdflatex×3 + bibtex/biber) with pre-compile integrity checks
+- `paper-assets` — one mode-based skill: ILLUSTRATE / FIGURE / ART / COMPILE (absorbed `paper-illustrate/figure/art/compile`, 2026-07-13); the deterministic LaTeX build lives in `scripts/compile_paper.sh`
 
 ### Theory & proofs
-- `theory-formalize`, `theory-decompose`, `theory-search`, `theory-counterexample`, `theory-generalize`
-- `proof-write` (theorem → first draft), `proof-critique`, `proof-fix`, `proof-formalize`, `proof-verify`
-- Chain: `proof-write → proof-critique → proof-fix → proof-formalize → proof-verify`
+- `theory` — modes: FORMALIZE / DECOMPOSE / SEARCH / COUNTEREXAMPLE / GENERALIZE (absorbed the 5 `theory-*` skills, 2026-07-13)
+- `proof` — modes: WRITE / CRITIQUE / FIX / FORMALIZE / VERIFY (absorbed the 5 `proof-*` skills, 2026-07-13)
+- Chain: `theory` → `proof` (write → critique → fix → formalize)
 
 ### Writing
-- `writing-outline`, `writing-draft`, `writing-review`, `writing-polish`
+- `writing` — modes: OUTLINE / DRAFT / POLISH (absorbed `writing-outline/draft/polish`, 2026-07-13)
+- `writing-review` — separate skill (ships codex-track variants)
 
 ### Planning & progress
-- `plan-suggest`, `plan-milestone`, `progress-capture`, `status-report`, `decision-analyze`, `experiment-analyze`
+- `plan-suggest` (SELECT stage; + MILESTONE mode, absorbed `plan-milestone` 2026-07-13)
+- `decision-analyze` (+ CONVERGE mode, absorbed `design-converge` 2026-07-13)
+- `experiment-analyze` (EVALUATE stage)
+- Status reporting is NOT a skill: `python -m harness status` (absorbed `status-report` + `checklist-status`, 2026-07-13); progress reports → `checklist` update mode (absorbed `progress-capture`, 2026-07-13)
 
 ### Experiments
-- `experiment-plan` (design phase: claims / variables / baselines / ablations)
+- `experiment-plan` (design phase: claims / variables / baselines / ablations / **pre-registered contracts** → ledger)
 - `experiment-dse` (hyperparameter sweep over a plan)
-- `experiment-run` (launch single config on GPU), `experiment-monitor` (poll)
+- `experiment-run` — judgment only (contract gate, GPU choice); dispatch mechanics migrated to `python -m harness ext-launch` (2026-07-13); SER-repo experiments use `python -m harness run`
+- `experiment-monitor` — thin wrapper over `python -m harness ext-status` (deterministic polling migrated to harness, 2026-07-13)
+- `experiment-analyze` (EVALUATE stage: verdict vs the pre-registered contract → RESEARCH_STATE.md evidence)
 - Chain: `experiment-plan → experiment-dse → experiment-run → experiment-monitor → experiment-analyze`
+- An experiment is complete only after `experiment-analyze` — "launched"/"finished" are not results
 
 ### Ideas
-- `idea-discover` (generate), `idea-verify` (novelty check), `idea-refine` (rough → structured proposal)
-- Chain: `idea-discover → idea-verify → idea-refine → experiment-plan`
+- `idea` — modes: EXPLORE / DISCOVER / REFINE (absorbed `research-explore` + `idea-discover` + `idea-refine`, 2026-07-13)
+- `idea-verify` — separate skill (ships codex-track variants)
+- Chain: `idea` (discover) → `idea-verify` → `idea` (refine) → `experiment-plan`
 
 ### Checklist engine
-- `checklist-create`, `checklist-verify`, `checklist-update`, `checklist-status`
+- `checklist` — one mode-based skill: CREATE / UPDATE / VERIFY / RECOUNT (absorbed `checklist-create/update/verify/status`, 2026-07-13; read-only reporting → `python -m harness status`)
 - Shared vocabulary: `_shared/checklist-engine.md`
 
 ### Memory
-- `memory-write`, `memory-retrieve`, `memory-consolidate`, `memory-forget`
+- `memory` — one mode-based skill: WRITE / RETRIEVE / CONSOLIDATE / FORGET (absorbed `memory-write/retrieve/consolidate/forget`, 2026-07-13)
 - Shared vocabulary: `_shared/memory-tiers.md`
 
-### Research exploration
-- `research-explore`, `design-converge`
-
 ### Code family
-- `code-branch`, `code-roadmap`, `code-implement`, `code-review`, `code-debug`, `code-commit`
+- `code` — one mode-based skill: BRANCH / ROADMAP / DEBUG / COMMIT (absorbed `code-branch/roadmap/debug/commit`, 2026-07-13)
+- `code-implement`, `code-review` — separate skills (ship codex-track variants)
 - Shared vocabulary: `_shared/git-conventions.md` (all tracks) and `_shared/codex-contract.md` (codex track only)
 
 ### Codex track (cross-cutting)
@@ -84,7 +89,7 @@ so it's ignored by `scripts/install-skills.sh`.
 
 ### Meta (skill evolution)
 - `skill-feedback` (online per-firing Q-update, signal-gated), `evolve-suggest` (on-demand audit + proposal), `evolve-apply` (commit proposal with version archive + rollback)
-- `general-research` (research-adjacent fallback)
+- (fallback skill `general-research` retired 2026-07-13 — unmatched research requests are handled directly under CLAUDE.md)
 - Shared vocabulary: `_shared/evolve-cycle.md`. Replaces the deprecated v3 batch G2→G1 + TextGrad pipeline.
 
 ### Integration (one-off)

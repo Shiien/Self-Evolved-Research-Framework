@@ -1,6 +1,6 @@
 ---
 name: paper-read
-description: Read a research paper (arXiv link, PDF, or pasted text) and produce structured reading notes saved to resources/papers/. Triggers when the user discusses or shares a paper, asks "what's this paper about", "read paper X", or provides an arXiv URL. Has two modes — Standard for fast triage, Deep (Fey-R) for full Feynman-method understanding.
+description: Read a research paper (arXiv link, PDF, or pasted text) and produce structured reading notes saved to resources/papers/. Also COMPARE mode (side-by-side table of 2+ papers with project implications, absorbed paper-compare) and INDEX mode (reading-history index by relevance/tag/status with gap flags, absorbed paper-index). Triggers when the user discusses or shares a paper, asks "what's this paper about", "read paper X", "what's the difference between paper X and Y", "what papers have I read", or provides an arXiv URL. Reading has two modes — Standard for fast triage, Deep (Fey-R) for full Feynman-method understanding.
 ---
 
 # paper-read
@@ -49,7 +49,25 @@ Use `skills/external/fey-r/assets/note-template.md` as the output template.
 2. Save output to `resources/papers/{PAPER_ID}.md` using Fey-R's note template, with the same front-matter as Standard mode
 3. If `resources/papers/README.md` exists, append to index with `[deep]` tag
 
+## Mode: COMPARE — "difference between X and Y" (absorbed `paper-compare`)
+
+1. Read the relevant `resources/papers/*.md` notes (trigger Standard reading
+   first for papers without notes).
+2. Comparison table: Method / Architecture / Training data / Results /
+   Limitations; highlight implications for the current project.
+3. Inline output; save only on request. → choosing an approach to adopt:
+   `decision-analyze`.
+
+## Mode: INDEX — "what papers have I read?" (absorbed `paper-index`)
+
+1. Read `resources/papers/README.md` + scan `resources/papers/*.md`
+   frontmatter.
+2. Output the index by relevance (high/med/low), topic tag, and read/unread
+   status; flag reading gaps vs the project methodology.
+→ unread high-relevance papers: Standard reading; missing coverage:
+`paper-lit-search`.
+
 **Inputs**: Paper content (any form: link, PDF, pasted text, title for lookup)
-**Outputs**: `resources/papers/{PAPER_ID}.md`
-**Token**: Standard ~3-8K, Deep ~15-40K (interactive, multi-turn)
-**Composition**: If paper has relevant theorem → suggest `theory-formalize`
+**Outputs**: `resources/papers/{PAPER_ID}.md`; COMPARE/INDEX inline
+**Token**: Standard ~3-8K, Deep ~15-40K (interactive, multi-turn), COMPARE 2-5K, INDEX 1-2K
+**Composition**: If paper has relevant theorem → suggest `theory` (formalize mode)

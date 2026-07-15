@@ -1,0 +1,44 @@
+{
+  "verdict": "success",
+  "confirmed": true,
+  "checks": {
+    "success_metric": {
+      "passed": true,
+      "detail": "dev.forfeits=0 <= 0.0 (literal) -> True"
+    },
+    "failure_condition": {
+      "passed": false,
+      "detail": "final_spec_valid=True == 0.0 (literal) -> False"
+    },
+    "confirmation": {
+      "passed": true,
+      "detail": "confirm.forfeit_rate=0.0 == 0.0 (literal) -> True"
+    }
+  },
+  "missing_diagnostics": [],
+  "evidence_strength": "weak (n=1 run)",
+  "metrics": {
+    "edits_applied": 0,
+    "apply_rejected_invalid": 2,
+    "final_spec_valid": true,
+    "engine_calls": 20,
+    "llm_calls": 0,
+    "wall_seconds": 0.09,
+    "dev.games": 2,
+    "dev.forfeits": 0,
+    "dev.decisive_wins": 2,
+    "dev.draws": 0,
+    "dev.total_moves": 14,
+    "dev.total_mistakes": 6,
+    "dev.clean_games": 0,
+    "dev.mistake_rate": 0.42857142857142855,
+    "confirm.draw": 0,
+    "confirm.win": 0,
+    "confirm.loss": 2,
+    "confirm.forfeit": 0,
+    "confirm.total": 2,
+    "confirm.draw_rate": 0.0,
+    "confirm.forfeit_rate": 0.0
+  },
+  "budget_exceeded": false
+}

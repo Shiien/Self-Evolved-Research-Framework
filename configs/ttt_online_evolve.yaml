@@ -1,0 +1,49 @@
+# exp-002: Online evolution with a REAL engine (the conceptual factor under
+# test), against the restored baseline. Run exp-001 first, then replace
+# success_metric.value with `baseline_run: <exp-001 run id>` so the comparison
+# is against measured baseline numbers rather than this provisional literal.
+experiment: ttt_cycle
+name: ttt-online-evolve
+seed: 0
+
+contract:
+  hypothesis: >
+    Per-game online evolution (G2 -> TD backward pass -> guarded spec apply)
+    with a real LLM engine improves the spec: held-out draw rate vs minimax at
+    least matches the baseline while at least one edit is actually applied,
+    and no forfeits are introduced.
+  change: >
+    ONE factor vs exp-001: evolve_enabled true (real engine backward pass with
+    guarded apply). Same model, same prompts, same eval protocol.
+  controls: "exp-001 baseline eval (same spec at start, evolution disabled)."
+  success_metric:
+    metric: confirm.draw_rate
+    op: ">="
+    value: 0.8   # provisional; switch to baseline_run after exp-001
+  failure_condition:
+    metric: confirm.forfeit_rate
+    op: ">"
+    value: 0.0
+  confirmation:
+    metric: confirm.forfeit_rate
+    op: "=="
+    value: 0.0
+  required_diagnostics:
+    - games.jsonl
+    - games-confirm.jsonl
+    - engine-calls.jsonl
+    - result.json
+  budget:
+    max_llm_calls: 250
+    max_minutes: 120
+
+params:
+  mode: online-evolve
+  games: 10
+  confirm_games_per_side: 3
+  evolve_enabled: true
+  engine: claude-cli
+  evolve_engine: cli
+  model: haiku
+  timeout: 180.0
+  sandbox: true

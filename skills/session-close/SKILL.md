@@ -9,7 +9,8 @@ description: Evidence-first conversation wrap-up. Writes what the session establ
 with substantial work completed).
 
 **Principle**: never rely on conversation history as memory. Anything worth
-keeping must land in the file that owns it (see `CLAUDE.md § State`).
+keeping must land in the file that owns it (see the root protocol's `State`
+section).
 
 **Process**:
 1. **RESEARCH_STATE.md** — for each thing this session established, append or
@@ -20,8 +21,8 @@ keeping must land in the file that owns it (see `CLAUDE.md § State`).
      same care as supporting evidence.
    - `## Active hypotheses`: add/retire/annotate (cite the evidence line).
      A hypothesis that reached a decision this session gets `[decision:
-     supported|falsified|terminated, date, evidence ref]` (`CLAUDE.md §
-     Hypothesis Closure & Scope Discipline`) — don't leave it looking
+     supported|falsified|terminated, date, evidence ref]` (root protocol,
+     `Hypothesis Closure & Scope Discipline`) — don't leave it looking
      still-open.
    - `## Unresolved uncertainties`: new unknowns, crashed runs (crash ≠
      negative evidence), noise caveats.

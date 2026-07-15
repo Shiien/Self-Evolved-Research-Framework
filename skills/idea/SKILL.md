@@ -69,7 +69,7 @@ current `RESEARCH_STATE.md § Current research question` (Level 1) is not
 automatically pursued — offer to append it to `IDEA_BACKLOG.md` instead:
 `- [ ] {idea} — relates to: {future question} — why not now: {reason} —
 revisit when: {condition}`. This keeps scope drift visible instead of silent
-(`CLAUDE.md § Hypothesis Closure & Scope Discipline`).
+(root protocol, `Hypothesis Closure & Scope Discipline`).
 
 **Inputs**: project context, paper notes, discovery entries, verify reports
 **Outputs**: inline (EXPLORE) · `methodology/ideas/YYYY-MM-DD-discovery.md`

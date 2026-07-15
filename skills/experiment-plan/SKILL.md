@@ -133,7 +133,7 @@ seeds: {N}
 ### 7b. Emit one experiment contract per execution-order row
 
 Each experiment that will actually be launched gets a contract, written NOW —
-before any result exists (`CLAUDE.md § Experiment Protocol`). `experiment-run`
+before any result exists (root protocol, `Experiment Protocol`). `experiment-run`
 and the harness refuse to launch without one:
 
 ```yaml

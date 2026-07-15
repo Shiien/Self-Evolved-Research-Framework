@@ -24,8 +24,8 @@ seems unsure about next steps.
    - a broken baseline or failed/unresumed run outranks everything (the loop
      rule: verify the baseline before new experiments);
    - a hypothesis stuck at two consecutive `inconclusive` verdicts outranks
-     fresh exploration — it needs a narrow/terminate decision (`CLAUDE.md §
-     Hypothesis Closure & Scope Discipline`) before new work starts under
+     fresh exploration — it needs a narrow/terminate decision (root protocol,
+     `Hypothesis Closure & Scope Discipline`) before new work starts under
      the same question;
    - experiments: highest uncertainty-resolved-per-cost first — prefer the
      cheapest run that can falsify something (one conceptual factor);

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -192,12 +193,20 @@ def _has_pytest() -> bool:
         return False
 
 
+def _smoke_test_env() -> dict[str, str]:
+    return dict(
+        os.environ,
+        PYTEST_DISABLE_PLUGIN_AUTOLOAD="1",
+        SER_TDNL_DISABLE_ENGINE="1",
+    )
+
+
 def cmd_smoke_test(_args) -> int:
-    import os
-    env = dict(os.environ, SER_TDNL_DISABLE_ENGINE="1")
     paths = [str(REPO_ROOT / p) for p in SMOKE_TEST_PATHS if (REPO_ROOT / p).exists()]
     proc = subprocess.run(
-        [sys.executable, "-m", "pytest", "-q", *paths], cwd=str(REPO_ROOT), env=env
+        [sys.executable, "-m", "pytest", "-q", *paths],
+        cwd=str(REPO_ROOT),
+        env=_smoke_test_env(),
     )
     return proc.returncode
 

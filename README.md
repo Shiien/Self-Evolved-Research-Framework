@@ -122,6 +122,24 @@ Each SER skill lives in its own directory under `skills/` with a standard
 `SKILL.md` (YAML frontmatter + body), so Claude Code auto-discovers and
 auto-triggers them once installed.
 
+### Codex-native runtime
+
+SER also supports a Codex-native single-model runtime:
+
+```bash
+bash scripts/install-skills.sh --runtime codex
+codex
+```
+
+Codex-native installation writes materialized skills to `.agents/skills/`,
+uses `AGENTS.md` as the root protocol, and selects `SKILL.openai.md` before a
+runtime-neutral `SKILL.md`. It follows the consolidated v6 skill families and
+does not depend on Claude hooks, Claude-only skill paths, `/codex:*`
+delegation, or `mcp__codex__codex`.
+
+Codex runtime installs are copy/materialized only. `--link`, `--user`, and
+`--codex-track` are not supported together with `--runtime codex`.
+
 ## Skills (27 SER + 1 external — consolidated from 57, see REFACTOR_PLAN.md §7)
 
 Each skill lives in `skills/{skill-name}/SKILL.md` with standard YAML frontmatter.
@@ -193,6 +211,8 @@ summary). An experiment is complete only after its evaluation has run.
 
 ```
 ├── CLAUDE.md              # Research protocol (loop, state model, intent router)
+├── AGENTS.md              # Codex-native version of the v6 research protocol
+├── .agents/skills/        # Materialized Codex skill installation target
 ├── RESEARCH_STATE.md      # Scientific state: question, hypotheses, evidence
 ├── EXPERIMENTS.json       # Experiment ledger (planned/running/complete + verdicts)
 ├── IDEA_BACKLOG.md        # Out-of-scope ideas parked with revisit conditions

@@ -4,18 +4,24 @@ This directory contains Python scripts that support the SER framework, mainly to
 
 ## Script List
 
-### `install-skills.sh` - Install Bundled Skills into `.claude/skills`
+### `install-skills.sh` - Install Bundled Skills for Claude or Codex
 
 **Purpose**: Auto-discover every skill under `./skills/` (any directory containing
-a `SKILL.md`) and install it into a `.claude/skills` directory so Claude Code can
-load it. Non-skill directories like `skills/_shared/` and `skills/td-nl/` are
-skipped (they have no `SKILL.md`).
+`SKILL.md`, `SKILL.claude.md`, `SKILL.codex.md`, or `SKILL.openai.md`) and install
+it for the selected runtime. Claude runtime installs to `.claude/skills` so Claude
+Code can load the skills; Codex runtime installs to `.agents/skills` so Codex can
+load materialized OpenAI-native skills. Runtime variant files are materialized as
+installed `SKILL.md` files. Non-skill directories like `skills/_shared/` and
+`skills/td-nl/` are skipped because they have no skill spec file.
 
 **Usage**:
 ```bash
 bash scripts/install-skills.sh                 # copy into ./.claude/skills
-bash scripts/install-skills.sh --link          # symlink (dev workflow)
-bash scripts/install-skills.sh --user          # install to ~/.claude/skills
+bash scripts/install-skills.sh --runtime claude --codex-track claude
+bash scripts/install-skills.sh --runtime claude --codex-track codex
+bash scripts/install-skills.sh --runtime codex # copy into ./.agents/skills
+bash scripts/install-skills.sh --link          # symlink (Claude runtime only)
+bash scripts/install-skills.sh --user          # install to ~/.claude/skills (Claude runtime only)
 bash scripts/install-skills.sh --dry-run       # preview without writing
 bash scripts/install-skills.sh --list          # list discovered skills
 bash scripts/install-skills.sh --force         # overwrite existing installs
@@ -23,6 +29,8 @@ bash scripts/install-skills.sh --help          # full option reference
 ```
 
 Safe to re-run; existing installs are skipped unless `--force` is passed.
+`--link`, `--user`, and `--codex-track` are Claude-runtime-only options; Codex
+runtime rejects them because it requires project-local materialized skill copies.
 
 ---
 

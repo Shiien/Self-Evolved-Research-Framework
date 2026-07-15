@@ -1,6 +1,16 @@
 ---
 name: memory
-description: All persistent-memory operations in one mode-based skill — WRITE (persist a durable insight/decision to memory/episodes/, importance-gated), RETRIEVE (surface relevant episodes/topics/procedures for the current task), CONSOLIDATE (synthesize 3+ related episodes into topics/procedures, keep MEMORY.md under its 200-line budget), FORGET (prune low-value memories under capacity pressure). Absorbs the former memory-write / memory-retrieve / memory-consolidate / memory-forget skills — those names now refer to modes here. Scope: durable NON-scientific context only; evidence lives in RESEARCH_STATE.md. Triggers on "remember this", "what do we know about X", at session-close, or on capacity thresholds.
+description: >-
+  All persistent-memory operations in one mode-based skill — WRITE (persist a
+  durable insight/decision to memory/episodes/, importance-gated), RETRIEVE
+  (surface relevant episodes/topics/procedures for the current task),
+  CONSOLIDATE (synthesize 3+ related episodes into topics/procedures, keep
+  MEMORY.md under its 200-line budget), FORGET (prune low-value memories under
+  capacity pressure). Absorbs the former memory-write / memory-retrieve /
+  memory-consolidate / memory-forget skills — those names now refer to modes
+  here. Scope: durable NON-scientific context only; evidence lives in
+  RESEARCH_STATE.md. Triggers on "remember this", "what do we know about X", at
+  session-close, or on capacity thresholds.
 ---
 
 # memory

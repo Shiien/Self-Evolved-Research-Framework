@@ -3,7 +3,7 @@
 Static lint for all peer-review-* skill directories.
 
 Checks:
-  1. Each expected skill directory exists under ~/.claude/skills/.
+  1. Each expected skill directory exists under the configured skills root.
   2. Each has a SKILL.md with valid YAML frontmatter.
   3. Frontmatter has `name` matching the directory and `description` >= 40 chars.
   4. The orchestrator SKILL.md references every stage skill by name.
@@ -12,6 +12,7 @@ Checks:
 """
 from __future__ import annotations
 
+import os
 import pathlib
 import sys
 
@@ -22,7 +23,9 @@ except ImportError:
     sys.exit(2)
 
 
-SKILLS_ROOT = pathlib.Path.home() / ".claude" / "skills"
+SKILLS_ROOT = pathlib.Path(
+    os.environ.get("SER_SKILLS_ROOT", pathlib.Path(__file__).resolve().parents[2])
+)
 
 ORCHESTRATOR = "peer-review"
 STAGE_SKILLS = [

@@ -25,7 +25,7 @@ Judgment happens against criteria written BEFORE the result existed.
    `failure_condition`: prefer computed comparisons (mean ± std over seeds,
    tests, invariants) over prose judgment. Keep `dev.*` and `confirm.*`
    metrics separate; a claim confirmed only on dev metrics is not confirmed.
-4. **Guardrails** (from `CLAUDE.md § Evaluation Guardrails`):
+4. **Guardrails** (from the root protocol's `Evaluation Guardrails` section):
    - a crash/NaN/OOM is a failure record, NOT negative evidence — route to
      `code` (debug mode) / resume instead of a verdict;
    - single noisy runs get `strength: weak (n=1)` — never "shows" or
@@ -43,8 +43,8 @@ Judgment happens against criteria written BEFORE the result existed.
      verdict, don't queue a third unchanged rerun: propose a narrower
      hypothesis (tighter contract) or mark it `terminated`. When evidence
      clears the bar either way, annotate `§ Active hypotheses` with
-     `[decision: supported|falsified, date, evidence ref]` (`CLAUDE.md §
-     Hypothesis Closure & Scope Discipline`) — don't leave a decided
+     `[decision: supported|falsified, date, evidence ref]` (root protocol,
+     `Hypothesis Closure & Scope Discipline`) — don't leave a decided
      hypothesis looking still-open.
 6. **Propose the next experiment**: the cheapest run that resolves the
    sharpest remaining uncertainty, one conceptual factor changed. Append to

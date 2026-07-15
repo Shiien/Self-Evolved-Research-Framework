@@ -35,9 +35,10 @@ Report the branch/worktree to the user and to downstream modes.
    - `## Goal` — one sentence, end state.
    - `## Context` — project, language/framework, **test command verbatim**,
      key files with one-line whys.
-   - `## Constraints` — never modify `.claude/`, `skills/`, `memory/`,
-     `hooks/`, `config.yaml`, `CLAUDE.md`; no `git commit/push` during
-     execution; no new deps unless justified in a step; + project-specific.
+   - `## Constraints` — never modify framework instructions, installed skill
+     surfaces, durable memory, or project configuration unless the task
+     explicitly authorizes it; no `git commit/push` during execution; no new
+     deps unless justified in a step; + project-specific.
    - `## Steps` (3-8; fewer → maybe no roadmap needed, more → split): each
      step has **Purpose / Files (Create·Modify·Test) / What to do**
      (function-class level, describe not code) **/ Acceptance** (runnable

@@ -59,7 +59,7 @@ description: Apply approved skill-spec edits from evolve-suggest — archive the
         pre_edit_score: X
     ```
 12. Append to `config.yaml` `evolution_history`
-13. Update CLAUDE.md if behavioral routing changed (rare)
+13. Update the active root protocol if behavioral routing changed (rare)
 
 **Outputs**: Modified skill specs + version archive + evolution log
 **Token**: ~2-5K

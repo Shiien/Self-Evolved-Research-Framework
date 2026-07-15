@@ -2,7 +2,7 @@
 
 Extension of the multi-stage AI peer review system in
 [**AI-Assisted Peer Review at Scale: AAAI-26 Pilot** (arxiv 2604.13940)](https://arxiv.org/abs/2604.13940),
-decomposed into composable Claude Code skills and extended with:
+decomposed into composable agent skills and extended with:
 
 - **Venue level selection**: `poster` / `oral` / `best_paper`, with oral and best-paper requiring explicit evidence of new insight and strong method.
 - **Interactive launch**: the orchestrator asks the user for level / reviewer count / reviewer backgrounds / recommendation-on-off before it touches the paper, and lets the user edit the level-specific bar text per run.
@@ -58,7 +58,7 @@ Per-run assets (written by orchestrator into `outputs/peer-review/<paper_id>/`):
 ## Testing
 
 ```bash
-bash ~/.claude/skills/peer-review/tests/run_all_tests.sh
+SER_SKILLS_ROOT=/path/to/skills bash /path/to/skills/peer-review/tests/run_all_tests.sh
 ```
 
 Four hermetic test layers (no LLM calls, <2s):

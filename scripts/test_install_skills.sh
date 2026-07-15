@@ -161,13 +161,13 @@ test_codex_runtime_ignores_claude_track_only_skills() {
 
 test_codex_runtime_single_model() {
   local target="$TMP_DIR/codex"
-  run_install --runtime codex --target "$target" --force --only code-implement
-  assert_file "$target/code-implement/SKILL.md"
-  assert_not_exists "$target/code-implement/SKILL.openai.md"
-  assert_not_exists "$target/code-implement/SKILL.claude.md"
-  assert_not_exists "$target/code-implement/SKILL.codex.md"
-  assert_grep 'Codex-native' "$target/code-implement/SKILL.md"
-  assert_no_grep 'Claude Code|\.claude|CLAUDE\.md|/codex:|mcp__codex__codex' "$target/code-implement/SKILL.md"
+  run_install --runtime codex --target "$target" --force --only experiment-run
+  assert_file "$target/experiment-run/SKILL.md"
+  assert_not_exists "$target/experiment-run/SKILL.openai.md"
+  assert_not_exists "$target/experiment-run/SKILL.claude.md"
+  assert_not_exists "$target/experiment-run/SKILL.codex.md"
+  assert_grep 'Codex-native' "$target/experiment-run/SKILL.md"
+  assert_no_grep 'Claude Code|\.claude|CLAUDE\.md|/codex:|mcp__codex__codex' "$target/experiment-run/SKILL.md"
 }
 
 test_codex_runtime_installed_surface_is_clean() {
@@ -257,10 +257,10 @@ test_codex_runtime_default_target() {
   local out="$TMP_DIR/default-target.out"
   (
     cd "$REPO_ROOT"
-    bash "$INSTALL" --no-color --runtime codex --dry-run --force --only code-review >"$out"
+    bash "$INSTALL" --no-color --runtime codex --dry-run --force --only experiment-run >"$out"
   )
   assert_grep "Target : ${REPO_ROOT}/\\.agents/skills" "$out"
-  assert_grep 'would (install|update) .*code-review' "$out"
+  assert_grep 'would (install|update) .*experiment-run' "$out"
 }
 
 test_default_claude_track_a

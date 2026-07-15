@@ -1,6 +1,14 @@
 ---
 name: plan-suggest
-description: The SELECT stage of the research loop. Reads RESEARCH_STATE.md (uncertainties + next recommended experiments) and EXPERIMENTS.json first, then the checklist tree for deliverable deadlines, and produces a prioritized list of 3-5 next actions — experiments ranked by uncertainty-resolved-per-cost, deliverables by milestone. Includes a MILESTONE mode (absorbed the former plan-milestone skill): days-to-deadline, phase progress, token budget, on-track/at-risk/behind. Triggers on "what should I do next?", "what's the priority?", "are we on track?", "when is the deadline?", "milestone status".
+description: >-
+  The SELECT stage of the research loop. Reads RESEARCH_STATE.md (uncertainties
+  + next recommended experiments) and EXPERIMENTS.json first, then the checklist
+  tree for deliverable deadlines, and produces a prioritized list of 3-5 next
+  actions — experiments ranked by uncertainty-resolved-per-cost, deliverables
+  by milestone. Includes a MILESTONE mode (absorbed the former plan-milestone
+  skill): days-to-deadline, phase progress, token budget,
+  on-track/at-risk/behind. Triggers on "what should I do next?", "what's the
+  priority?", "are we on track?", "when is the deadline?", "milestone status".
 ---
 
 # plan-suggest

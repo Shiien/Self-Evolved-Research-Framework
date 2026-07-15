@@ -211,6 +211,8 @@ summary). An experiment is complete only after its evaluation has run.
 
 ```
 ├── CLAUDE.md              # Research protocol (loop, state model, intent router)
+├── AGENTS.md              # Codex-native version of the v6 research protocol
+├── .agents/skills/        # Materialized Codex skill installation target
 ├── RESEARCH_STATE.md      # Scientific state: question, hypotheses, evidence
 ├── EXPERIMENTS.json       # Experiment ledger (planned/running/complete + verdicts)
 ├── IDEA_BACKLOG.md        # Out-of-scope ideas parked with revisit conditions
